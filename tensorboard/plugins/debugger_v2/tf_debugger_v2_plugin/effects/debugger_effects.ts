@@ -41,6 +41,8 @@ import {
   numAlertsAndBreakdownRequested,
   numExecutionsLoaded,
   numExecutionsRequested,
+  numGraphExecutionsLoaded,
+  numGraphExecutionsRequested,
   sourceFileListLoaded,
   sourceFileListRequested,
   sourceLineFocused,
@@ -65,11 +67,10 @@ import {
   getLoadedExecutionData,
   getLoadedStackFrames,
   getNumAlertsOfFocusedType,
+  getNumGraphExecutionsLoaded,
   getSourceFileListLoaded,
-  getSourceFileList,
   getFocusedSourceFileIndex,
 } from '../store/debugger_selectors';
-import {findFileIndex} from '../store/debugger_store_utils';
 import {
   DataLoadState,
   DebuggerRunListing,
@@ -189,7 +190,7 @@ export class DebuggerEffects {
   }
 
   /**
-   * When a debugger run exists, load number of executions.
+   * When a debugger run exists, load number of top-level executions.
    */
   private createNumExecutionLoader(prevStream$: Observable<void>) {
     return prevStream$.pipe(
@@ -217,6 +218,45 @@ export class DebuggerEffects {
           }),
           map(() => void null)
         );
+        // TODO(cais): Add catchError() to pipe.
+      })
+    );
+  }
+
+  /**
+   * When a debugger run exists, load number of intra-graph executions.
+   */
+  private createNumGraphExecutionLoader(prevStream$: Observable<void>) {
+    return prevStream$.pipe(
+      withLatestFrom(
+        this.store.select(getDebuggerRunListing),
+        this.store.select(getNumGraphExecutionsLoaded)
+      ),
+      filter(([, runs, loaded]) => {
+        return (
+          Object.keys(runs).length > 0 && loaded.state !== DataLoadState.LOADING
+        );
+      }),
+      tap(() => this.store.dispatch(numGraphExecutionsRequested())),
+      mergeMap(([, runs]) => {
+        // TODO(cais): Handle multiple runs. Currently it is assumed that there
+        // is at most only one debugger run available.
+        const runId = Object.keys(runs)[0];
+        const begin = 0;
+        const end = 0;
+        console.log('Calling fetchGraphExecutionDigests()'); // DEBUG
+        return this.dataSource
+          .fetchGraphExecutionDigests(runId, begin, end)
+          .pipe(
+            tap((digests) => {
+              this.store.dispatch(
+                numGraphExecutionsLoaded({
+                  numGraphExecutions: digests.num_digests,
+                })
+              );
+            }),
+            map(() => void null)
+          );
         // TODO(cais): Add catchError() to pipe.
       })
     );
@@ -782,6 +822,11 @@ export class DebuggerEffects {
           )
         );
 
+        const onNumGraphExecutionLoaded$ = this.createNumGraphExecutionLoader(
+          onLoad$
+        );
+        // TODO(cais): Add onInitialGraphExecutions.
+
         const onSourceFileFocused$ = this.onSourceFileFocused();
 
         // ExecutionDigest and ExecutionData can be loaded in parallel.
@@ -789,6 +834,7 @@ export class DebuggerEffects {
           onNumAlertsLoaded$,
           onExcutionDigestLoaded$,
           onExecutionDataLoaded$,
+          onNumGraphExecutionLoaded$, // TODO(cais): Replace with more downstream.
           loadSourceFileList$,
           onSourceFileFocused$
         ).pipe(

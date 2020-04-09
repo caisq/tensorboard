@@ -26,10 +26,11 @@ import {
   AlertType,
   DataLoadState,
   DebuggerState,
+  Executions,
+  GraphExecutions,
   InfNanAlert,
   StackFramesById,
   SourceFileSpec,
-  SourceLineSpec,
 } from './debugger_types';
 
 // HACK: These imports are for type inference.
@@ -37,6 +38,53 @@ import {
 /** @typehack */ import * as _typeHackStore from '@ngrx/store/store';
 
 const DEFAULT_EXECUTION_PAGE_SIZE = 100;
+const DEFAULT_GRAPH_EXECUTION_PAGE_SIZE = 100;
+
+export function createInitialExecutionsState(): Executions {
+  return {
+    numExecutionsLoaded: {
+      state: DataLoadState.NOT_LOADED,
+      lastLoadedTimeInMs: null,
+    },
+    executionDigestsLoaded: {
+      state: DataLoadState.NOT_LOADED,
+      lastLoadedTimeInMs: null,
+      numExecutions: 0,
+      pageLoadedSizes: {},
+    },
+    // TODO(cais) Remove the hardcoding of this, which is coupled with css width
+    // properties.
+    displayCount: 50,
+    pageSize: DEFAULT_EXECUTION_PAGE_SIZE,
+    scrollBeginIndex: 0,
+    focusIndex: null,
+    executionDigests: {},
+    executionData: {},
+  };
+}
+
+export function createInitialGraphExecutionsState(): GraphExecutions {
+  return {
+    numExecutionsLoaded: {
+      state: DataLoadState.NOT_LOADED,
+      lastLoadedTimeInMs: null,
+    },
+    executionDigestsLoaded: {
+      state: DataLoadState.NOT_LOADED,
+      lastLoadedTimeInMs: null,
+      numExecutions: 0,
+      pageLoadedSizes: {},
+    },
+    // TODO(cais) Remove the hardcoding of this, which is coupled with css width
+    // properties.
+    displayCount: 50,
+    pageSize: DEFAULT_GRAPH_EXECUTION_PAGE_SIZE,
+    scrollBeginIndex: 0,
+    focusIndex: null,
+    graphExecutionDigests: {},
+    graphExecutionData: {},
+  };
+}
 
 const initialState: DebuggerState = {
   runs: {},
@@ -56,26 +104,8 @@ const initialState: DebuggerState = {
     executionIndices: {},
     focusType: null,
   },
-  executions: {
-    numExecutionsLoaded: {
-      state: DataLoadState.NOT_LOADED,
-      lastLoadedTimeInMs: null,
-    },
-    executionDigestsLoaded: {
-      numExecutions: 0,
-      pageLoadedSizes: {},
-      state: DataLoadState.NOT_LOADED,
-      lastLoadedTimeInMs: null,
-    },
-    scrollBeginIndex: 0,
-    focusIndex: null,
-    pageSize: DEFAULT_EXECUTION_PAGE_SIZE,
-    // TODO(cais) Remove the hardcoding of this, which is coupled with css width
-    // properties.
-    displayCount: 50,
-    executionDigests: {},
-    executionData: {},
-  },
+  executions: createInitialExecutionsState(),
+  graphExecutions: createInitialGraphExecutionsState(),
   stackFrames: {},
   sourceCode: {
     sourceFileListLoaded: {
@@ -272,6 +302,9 @@ const reducer = createReducer(
       return newState;
     }
   ),
+  //////////////////////////////////////////////
+  // Reducers related to top-level execution. //
+  //////////////////////////////////////////////
   on(
     actions.numExecutionsRequested,
     (state: DebuggerState): DebuggerState => {
@@ -482,6 +515,59 @@ const reducer = createReducer(
       return newState;
     }
   ),
+  ////////////////////////////////////////////////
+  // Reducers related to intra-graph execution. //
+  ////////////////////////////////////////////////
+  on(
+    actions.numGraphExecutionsRequested,
+    (state: DebuggerState): DebuggerState => {
+      const runId = state.activeRunId;
+      if (runId === null) {
+        return state;
+      }
+      return {
+        ...state,
+        graphExecutions: {
+          ...state.graphExecutions,
+          numExecutionsLoaded: {
+            ...state.graphExecutions.numExecutionsLoaded,
+            state: DataLoadState.LOADING,
+          },
+        },
+      };
+    }
+  ),
+  on(
+    actions.numGraphExecutionsLoaded,
+    (state: DebuggerState, {numGraphExecutions}): DebuggerState => {
+      const runId = state.activeRunId;
+      if (runId === null) {
+        return state;
+      }
+      const newState = {
+        ...state,
+        graphExecutions: {
+          ...state.graphExecutions,
+          numExecutionsLoaded: {
+            ...state.graphExecutions.numExecutionsLoaded,
+            state: DataLoadState.LOADED,
+            lastLoadedTimeInMs: Date.now(),
+          },
+          executionDigestsLoaded: {
+            ...state.executions.executionDigestsLoaded,
+            numGraphExecutions,
+          },
+        },
+      };
+      if (numGraphExecutions > 0 && state.graphExecutions.focusIndex === null) {
+        newState.graphExecutions.focusIndex = 0;
+      }
+      return newState;
+    }
+  ), // TODO(cais): Add unit tests for these.
+  ////////////////////////////////////////////////////////
+  // Reducers related to source files and stack traces. //
+  ////////////////////////////////////////////////////////
   on(
     actions.sourceFileListRequested,
     (state: DebuggerState): DebuggerState => {

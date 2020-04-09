@@ -187,6 +187,17 @@ export const getVisibleExecutionDigests = createSelector(
 );
 
 /**
+ * Selectors related to intra-graph execution.
+ */
+
+export const getNumGraphExecutionsLoaded = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): LoadState => {
+    return state.graphExecutions.numExecutionsLoaded;
+  }
+);
+
+/**
  * Get the focused alert types (if any) of the execution digests current being
  * displayed. For each displayed execution digest, there are two possibilities:
  * - `null` represents no alert.

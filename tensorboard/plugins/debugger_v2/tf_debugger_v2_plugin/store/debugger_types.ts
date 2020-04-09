@@ -84,6 +84,43 @@ export interface Execution extends ExecutionDigest {
   debug_tensor_values: Array<number[] | null> | null;
 }
 
+/**
+ * Digest for the execution of a Tensor inside a tf.Graph (e.g., tf.function).
+ *
+ * Mirrors data structure `class GraphExecutionTraceDigest` in
+ * https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/debug/lib/debug_events_reader.py
+ */
+export interface GraphExecutionDigest {
+  // Debugger-generated id for the inner-most (immediately-enclosing) tf.Graph.
+  graph_id: string;
+
+  op_name: string;
+
+  op_type: string;
+
+  // Output slot of the tensor on the op that it belongs to.
+  output_slot: number;
+}
+
+/**
+ * Non-digest, detaileddata object for the execution of a Tensor inside a
+ * tf.Graph (e.g., tf.function).
+ *
+ * Mirrors data structure `class GraphExecutionTrace` in
+ * https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/debug/lib/debug_events_reader.py
+ */
+export interface GraphExecution extends GraphExecutionDigest {
+  // The debugger-generated IDs of the graphs that enclose the
+  // executed op (tensor), ordered from the outermost to the innermost.
+  graph_ids: string[];
+
+  tensor_debug_mode: number;
+
+  debug_tensor_value: number[] | null;
+
+  device_name: string;
+}
+
 export enum AlertType {
   FUNCTION_RECOMPILE_ALERT = 'FunctionRecompilesAlert',
   INF_NAN_ALERT = 'InfNanAlert',
@@ -125,9 +162,16 @@ export interface ExecutionDigestLoadState extends LoadState {
   pageLoadedSizes: {[page: number]: number};
 
   // Number of top-level executions available at the data source (not
-  // necessarilty loaded by frontend yet.)
+  // necessarily loaded by frontend yet.)
   numExecutions: number;
 }
+
+// TODO(cais): deduplicate with ExecutionDigestLoadState? Remove.
+// export interface GraphExecutionDigestLoadState extends LoadState {
+//   pageLoadedSizes: {[page: number]: number};
+
+//   numExecutions: number;
+// }
 
 // A map from the type of alert (e.g., 'InfNanAlert') to count of alerts
 // of that type.
@@ -165,7 +209,8 @@ export interface Alerts {
   focusType: AlertType | null;
 }
 
-export interface Executions {
+// TODO(cais): Add doc string.
+export interface PagedExecutions {
   // Load state for the total number of top-level executions.
   // numExecutionsLoaded load state can go from LOADED to LOADING, as
   // the backend may keep reading in new data and see an increase in
@@ -193,12 +238,22 @@ export interface Executions {
 
   // Index of focusing. `null` means no focus has been selected.
   focusIndex: number | null;
+}
 
+// TODO(cais): Add doc string.
+export interface Executions extends PagedExecutions {
   // Execution digests the frontend has loaded so far.
   executionDigests: {[index: number]: ExecutionDigest};
 
   // Detailed data objects.
   executionData: {[index: number]: Execution};
+}
+
+// TODO(cais): Add doc string.
+export interface GraphExecutions extends PagedExecutions {
+  graphExecutionDigests: {[index: number]: GraphExecutionDigest};
+
+  graphExecutionData: {[index: number]: Execution};
 }
 
 // The state of a loaded DebuggerV2 run.
@@ -256,8 +311,11 @@ export interface DebuggerState {
 
   alerts: Alerts;
 
-  // Per-run detailed data.
+  // Per-run data for top-level (eager) executions.
   executions: Executions;
+
+  // Per-run data for intra-graph (eager) executions.
+  graphExecutions: GraphExecutions;
 
   // Stack frames that have been loaded from data source so far, keyed by
   // stack-frame IDs.
