@@ -18,6 +18,7 @@ import * as actions from '../actions';
 import {
   ExecutionDataResponse,
   ExecutionDigestsResponse,
+  GraphExecutionDigestsResponse,
   SourceFileResponse,
 } from '../data_source/tfdbg2_data_source';
 import {findFileIndex} from './debugger_store_utils';
@@ -565,6 +566,67 @@ const reducer = createReducer(
       return newState;
     }
   ), // TODO(cais): Add unit tests for these.
+  on(
+    actions.graphExecutionDigestsRequested,
+    (state: DebuggerState): DebuggerState => {
+      console.log('In graphExecutionDigestsRequested reducer'); // DEBUG
+      const runId = state.activeRunId;
+      if (runId === null) {
+        return state;
+      }
+      return {
+        ...state,
+        graphExecutions: {
+          ...state.graphExecutions,
+          executionDigestsLoaded: {
+            ...state.graphExecutions.executionDigestsLoaded,
+            state: DataLoadState.LOADING,
+          },
+        },
+      };
+    }
+  ), // TODO(cais): Add unit tests for these.
+  on(
+    actions.graphExecutionDigestsLoaded,
+    (
+      state: DebuggerState,
+      digests: GraphExecutionDigestsResponse
+    ): DebuggerState => {
+      console.log('In graphExecutionDigestsLoaded reducer'); // DEBUG
+      const runId = state.activeRunId;
+      if (runId === null) {
+        return state;
+      }
+      const newState: DebuggerState = {
+        ...state,
+        graphExecutions: {
+          ...state.graphExecutions,
+          executionDigestsLoaded: {
+            ...state.graphExecutions.executionDigestsLoaded,
+            numExecutions: digests.num_digests,
+            state: DataLoadState.LOADED,
+            lastLoadedTimeInMs: Date.now(),
+          },
+          graphExecutionDigests: {
+            ...state.graphExecutions.graphExecutionDigests,
+          },
+        },
+      };
+      for (let i = digests.begin; i < digests.end; ++i) {
+        newState.graphExecutions.graphExecutionDigests[i] =
+          digests.graph_execution_digests[i - digests.begin];
+      }
+      // Update pagesLoadedInFull.
+      if (digests.end > digests.begin) {
+        const pageIndex = digests.begin / state.graphExecutions.pageSize;
+        newState.graphExecutions.executionDigestsLoaded.pageLoadedSizes = {
+          ...newState.graphExecutions.executionDigestsLoaded.pageLoadedSizes,
+          [pageIndex]: digests.end - digests.begin,
+        };
+      }
+      return newState;
+    }
+  ), // TODO(cais): Add unit tests.
   ////////////////////////////////////////////////////////
   // Reducers related to source files and stack traces. //
   ////////////////////////////////////////////////////////

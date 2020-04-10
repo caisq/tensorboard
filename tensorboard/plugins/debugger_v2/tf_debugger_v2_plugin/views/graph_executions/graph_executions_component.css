@@ -14,11 +14,12 @@ limitations under the License.
 ==============================================================================*/
 
 .example-viewport {
-  height: 200px;
-  width: 200px;
   border: 1px solid black;
+  font-size: 12px;
+  height: 100%;
+  width: 100%;
 }
 
 .example-item {
-  height: 50px;
+  height: 40px;
 }

@@ -25,6 +25,7 @@ import {
   Execution,
   ExecutionDigest,
   ExecutionDigestLoadState,
+  GraphExecutionDigest,
   LoadState,
   SourceFileContent,
   SourceFileSpec,
@@ -219,6 +220,13 @@ export const getGraphExecutionPageSize = createSelector(
   selectDebuggerState,
   (state: DebuggerState): number => {
     return state.graphExecutions.pageSize;
+  }
+); // TODO(cais): Add unit test.
+
+export const getGraphExecutionDigests = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): {[index: number]: GraphExecutionDigest} => {
+    return state.graphExecutions.graphExecutionDigests;
   }
 ); // TODO(cais): Add unit test.
 
