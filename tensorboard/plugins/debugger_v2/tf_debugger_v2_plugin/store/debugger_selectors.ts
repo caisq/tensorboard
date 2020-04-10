@@ -124,6 +124,10 @@ export const getAlertsBreakdown = createSelector(
   }
 );
 
+/**
+ * Selectors related to top-level (eager) execution.
+ */
+
 export const getNumExecutionsLoaded = createSelector(
   selectDebuggerState,
   (state: DebuggerState): LoadState => {
@@ -195,7 +199,14 @@ export const getNumGraphExecutionsLoaded = createSelector(
   (state: DebuggerState): LoadState => {
     return state.graphExecutions.numExecutionsLoaded;
   }
-);
+); // TODO(cais): Add unit test.
+
+export const getNumGraphExecutions = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): number => {
+    return state.graphExecutions.executionDigestsLoaded.numExecutions;
+  }
+); // TODO(cais): Add unit test.
 
 /**
  * Get the focused alert types (if any) of the execution digests current being

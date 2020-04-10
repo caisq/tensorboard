@@ -555,7 +555,7 @@ const reducer = createReducer(
           },
           executionDigestsLoaded: {
             ...state.executions.executionDigestsLoaded,
-            numGraphExecutions,
+            numExecutions: numGraphExecutions,
           },
         },
       };

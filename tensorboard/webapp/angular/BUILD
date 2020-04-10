@@ -145,6 +145,15 @@ tf_ts_library(
     ],
 )
 
+# This is a dummy rule used as a @angular/cdk/overlay dependency.
+tf_ts_library(
+    name = "expect_angular_cdk_scroll",
+    srcs = [],
+    deps = [
+        "@npm//@angular/cdk",
+    ],
+)
+
 # This is a dummy rule used as a @ngrx/store/testing dependency.
 # This is not a replacement for @ngrx/store dependency.
 tf_ts_library(
