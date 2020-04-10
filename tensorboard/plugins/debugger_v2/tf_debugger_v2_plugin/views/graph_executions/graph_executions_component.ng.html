@@ -17,6 +17,11 @@ limitations under the License.
 
 <div>Graph Executions: ({{numGraphExecutions}})</div>
 
-<cdk-virtual-scroll-viewport itemSize="50" class="example-viewport">
+<cdk-virtual-scroll-viewport
+  #executionsScroll
+  itemSize="50"
+  class="example-viewport"
+  (scrolledIndexChange)="scrolledIndexChange($event)"
+>
   <div *cdkVirtualFor="let item of items" class="example-item">{{item}}</div>
 </cdk-virtual-scroll-viewport>

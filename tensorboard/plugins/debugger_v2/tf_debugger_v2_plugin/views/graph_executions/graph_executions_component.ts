@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 
 @Component({
@@ -25,4 +26,8 @@ export class GraphExecutionsComponent {
   numGraphExecutions: number | null = null;
 
   items = Array.from({length: 1000 * 1000}).map((_, i) => `Item #${i}`);
+
+  scrolledIndexChange(scrollIndex: number) {
+    console.log('scrolledIndexChange:', scrollIndex); // DEBUG
+  }
 }

@@ -201,10 +201,24 @@ export const getNumGraphExecutionsLoaded = createSelector(
   }
 ); // TODO(cais): Add unit test.
 
+export const getGraphExecutionDigestsLoaded = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): ExecutionDigestLoadState => {
+    return state.graphExecutions.executionDigestsLoaded;
+  }
+); // TODO(cais): Add unit test.
+
 export const getNumGraphExecutions = createSelector(
   selectDebuggerState,
   (state: DebuggerState): number => {
     return state.graphExecutions.executionDigestsLoaded.numExecutions;
+  }
+); // TODO(cais): Add unit test.
+
+export const getGraphExecutionPageSize = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): number => {
+    return state.graphExecutions.pageSize;
   }
 ); // TODO(cais): Add unit test.
 

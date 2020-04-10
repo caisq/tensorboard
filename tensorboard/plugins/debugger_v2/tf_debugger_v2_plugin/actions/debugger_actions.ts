@@ -27,6 +27,7 @@ import {
 import {
   ExecutionDigestsResponse,
   ExecutionDataResponse,
+  GraphExecutionDigestsResponse,
   SourceFileResponse,
 } from '../data_source/tfdbg2_data_source';
 
@@ -142,6 +143,15 @@ export const numGraphExecutionsRequested = createAction(
 export const numGraphExecutionsLoaded = createAction(
   '[Debugger] Number of Intra-Graph Executions Loaded',
   props<{numGraphExecutions: number}>()
+);
+
+export const graphExecutionDigestsRequested = createAction(
+  '[Debugger] Intra-Graph ExecutionDigests Requested'
+);
+
+export const graphExecutionDigestsLoaded = createAction(
+  '[Debugger] Intra-Graph ExecutionDigests Loaded',
+  props<GraphExecutionDigestsResponse>()
 );
 
 /**

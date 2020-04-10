@@ -37,6 +37,8 @@ import {
   executionScrollLeft,
   executionScrollRight,
   executionScrollToIndex,
+  graphExecutionDigestsLoaded,
+  graphExecutionDigestsRequested,
   numAlertsAndBreakdownLoaded,
   numAlertsAndBreakdownRequested,
   numExecutionsLoaded,
@@ -61,12 +63,15 @@ import {
   getExecutionPageSize,
   getExecutionScrollBeginIndex,
   getFocusedSourceFileContent,
+  getGraphExecutionDigestsLoaded,
+  getGraphExecutionPageSize,
   getNumExecutions,
   getNumExecutionsLoaded,
   getLoadedAlertsOfFocusedType,
   getLoadedExecutionData,
   getLoadedStackFrames,
   getNumAlertsOfFocusedType,
+  getNumGraphExecutions,
   getNumGraphExecutionsLoaded,
   getSourceFileListLoaded,
   getFocusedSourceFileIndex,
@@ -544,6 +549,91 @@ export class DebuggerEffects {
   }
 
   /**
+   * Emits when initial graph execution digests and data are required.
+   *
+   * These initial data loading actions are required when the number of
+   * executions is greater than zero.
+   */
+  private createInitialGraphExecutionDetector(
+    prevStream$: Observable<void>
+  ): Observable<void> {
+    return prevStream$.pipe(
+      withLatestFrom(
+        this.store.select(getNumGraphExecutions),
+        this.store.select(getGraphExecutionDigestsLoaded)
+      ),
+      filter(([, numGraphExecutions, graphExecutionDigestsLoaded]) => {
+        return (
+          numGraphExecutions > 0 &&
+          Object.keys(graphExecutionDigestsLoaded.pageLoadedSizes).length === 0
+        );
+      }),
+      map(() => void null)
+    );
+  }
+
+  /**
+   * Emits when the first page if intra-graph execution digests are
+   * required to be loaded.
+   */
+  private createInitialGraphExecutionDigest(
+    prevStream$: Observable<void>
+  ): Observable<{
+    runId: string;
+    begin: number;
+    end: number;
+  }> {
+    return prevStream$.pipe(
+      withLatestFrom(
+        this.store.select(getNumGraphExecutions),
+        this.store.select(getActiveRunId),
+        this.store.select(getGraphExecutionPageSize),
+        this.store.select(getGraphExecutionDigestsLoaded)
+      ),
+      filter(([, , runId, , loaded]) => {
+        return runId !== null && loaded.state !== DataLoadState.LOADING;
+      }),
+      map(([, numGraphExecutions, runId, pageSize]) => {
+        const begin = 0;
+        const end = Math.min(numGraphExecutions, pageSize);
+        return {begin, end, runId: runId!};
+      })
+    );
+  }
+
+  /**
+   * Load intra-graph execution digests.
+   */
+  private createGraphExecutionDigestLoader(
+    prevStream$: Observable<{
+      runId: string;
+      begin: number;
+      end: number;
+    }>
+  ): Observable<void> {
+    return prevStream$.pipe(
+      filter(({begin, end}) => end > begin),
+      tap(() => {
+        // TODO(cais): Add reducer. DO NOT SUBMIT.
+        this.store.dispatch(graphExecutionDigestsRequested());
+      }),
+      mergeMap(({runId, begin, end}) => {
+        return this.dataSource
+          .fetchGraphExecutionDigests(runId, begin, end)
+          .pipe(
+            tap((digests) => {
+              console.log('fetchGraphExecutionDigests() result:', digests);
+              // TODO(cais): Add reducer. DO NOT SUBMIT.
+              this.store.dispatch(graphExecutionDigestsLoaded(digests));
+            }),
+            map(() => void null)
+          );
+        // TODO(cais): Add catchError() to pipe.
+      })
+    );
+  }
+
+  /**
    * Emits when user focuses on an alert type.
    *
    * Returns an Observable for what additional execution digests need to be fetched.
@@ -825,7 +915,12 @@ export class DebuggerEffects {
         const onNumGraphExecutionLoaded$ = this.createNumGraphExecutionLoader(
           onLoad$
         );
-        // TODO(cais): Add onInitialGraphExecutions.
+        const onInitialGraphExecution$ = this.createInitialGraphExecutionDetector(
+          onNumGraphExecutionLoaded$
+        ); // TODO(cais): Make share() if necessary.
+        const onGraphExecutionDigestsLoaded$ = this.createGraphExecutionDigestLoader(
+          this.createInitialGraphExecutionDigest(onInitialGraphExecution$)
+        );
 
         const onSourceFileFocused$ = this.onSourceFileFocused();
 
@@ -834,7 +929,7 @@ export class DebuggerEffects {
           onNumAlertsLoaded$,
           onExcutionDigestLoaded$,
           onExecutionDataLoaded$,
-          onNumGraphExecutionLoaded$, // TODO(cais): Replace with more downstream.
+          onGraphExecutionDigestsLoaded$,
           loadSourceFileList$,
           onSourceFileFocused$
         ).pipe(
