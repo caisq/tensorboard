@@ -15,8 +15,9 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {createSelector, select, Store} from '@ngrx/store';
 
+import {graphExecutionScrollToIndex} from '../../actions';
 import {getGraphExecutionDigests, getNumGraphExecutions} from '../../store';
-import {GraphExecutionDigest, State} from '../../store/debugger_types';
+import {State} from '../../store/debugger_types';
 
 /** @typehack */ import * as _typeHackRxjs from 'rxjs';
 
@@ -27,6 +28,7 @@ import {GraphExecutionDigest, State} from '../../store/debugger_types';
       [numGraphExecutions]="numGraphExecutions$ | async"
       [graphExecutionDigests]="graphExecutionDigests$ | async"
       [graphExecutionIndices]="graphExecutionIndices$ | async"
+      (onScrolledIndexChange)="onScrolledIndexChange($event)"
     ></graph-executions-component>
   `,
 })
@@ -36,24 +38,6 @@ export class GraphExecutionsContainer {
   readonly graphExecutionDigests$ = this.store.pipe(
     select(getGraphExecutionDigests)
   );
-
-  // readonly opNames$ = this.store.pipe(
-  //   select(
-  //     createSelector(
-  //       getGraphExecutionDigests,
-  //       getNumGraphExecutions,
-  //       (graphExecutionDigests: {[index: number]: GraphExecutionDigest}, numGraphExecution: number): string[] => {
-  //         console.log('numGraphExecution=', numGraphExecution);  // DEBUG
-  //         const output: string[] = new Array<string>(numGraphExecution);
-  //         for (let i = 0; i < numGraphExecution; ++i) {
-  //           output[i] = graphExecutionDigests[i] === undefined ? '' : graphExecutionDigests[i].op_name;
-  //         }
-  //         console.log('output:', output);  // DEBUG
-  //         return output;
-  //       }
-  //     )
-  //   )
-  // )
 
   readonly graphExecutionIndices$ = this.store.pipe(
     select(
@@ -67,7 +51,11 @@ export class GraphExecutionsContainer {
         }
       )
     )
-  )
+  );
+
+  onScrolledIndexChange(scrolledIndex: number) {
+    this.store.dispatch(graphExecutionScrollToIndex({index: scrolledIndex}));
+  }
 
   constructor(private readonly store: Store<State>) {}
 }

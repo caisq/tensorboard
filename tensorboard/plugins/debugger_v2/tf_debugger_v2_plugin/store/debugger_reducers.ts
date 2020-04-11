@@ -627,6 +627,24 @@ const reducer = createReducer(
       return newState;
     }
   ), // TODO(cais): Add unit tests.
+  on(
+    actions.graphExecutionScrollToIndex,
+    (state: DebuggerState, action: {index: number}): DebuggerState => {
+      if (action.index < 0 || !Number.isInteger(action.index)) {
+        throw new Error(
+          `Attempt to scroll to negative or non-integer execution index ` +
+            `(${action.index})`
+        );
+      }
+      return {
+        ...state,
+        graphExecutions: {
+          ...state.graphExecutions,
+          scrollBeginIndex: action.index,
+        },
+      };
+    }
+  ), // TODO(cais): Add unit tests.
   ////////////////////////////////////////////////////////
   // Reducers related to source files and stack traces. //
   ////////////////////////////////////////////////////////

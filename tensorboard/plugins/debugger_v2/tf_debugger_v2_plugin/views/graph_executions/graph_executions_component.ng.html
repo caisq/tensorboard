@@ -22,20 +22,21 @@ limitations under the License.
   #executionsScroll
   itemSize="24"
   class="graph-executions-viewport"
-  (scrolledIndexChange)="scrolledIndexChange($event)"
+  (scrolledIndexChange)="onScrolledIndexChange.emit($event)"
 >
   <div *cdkVirtualFor="let i of graphExecutionIndices" class="tensor-container">
-      <div *ngIf="graphExecutionDigests[i]" class="tensor-item">
-        <div class="graph-execution-index">
-          {{ i }}
-        </div>
-        <div class="tensor-name">
-          {{ graphExecutionDigests[i].op_name }}:{{ graphExecutionDigests[i].output_slot }}
-        </div>
-        <div class="op-type">
-          {{ graphExecutionDigests[i].op_type }}
-        </div>
+    <div *ngIf="graphExecutionDigests[i]" class="tensor-item">
+      <div class="graph-execution-index">
+        {{ i }}
       </div>
+      <div class="tensor-name">
+        {{ graphExecutionDigests[i].op_name }}:{{
+        graphExecutionDigests[i].output_slot }}
+      </div>
+      <div class="op-type">
+        {{ graphExecutionDigests[i].op_type }}
+      </div>
+    </div>
   </div>
 </cdk-virtual-scroll-viewport>
 <!-- </div> -->

@@ -216,6 +216,13 @@ export const getNumGraphExecutions = createSelector(
   }
 ); // TODO(cais): Add unit test.
 
+export const getGraphExecutionScrollBeginIndex = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): number => {
+    return state.graphExecutions.scrollBeginIndex;
+  }
+); // TODO(cais): Add unit test.
+
 export const getGraphExecutionPageSize = createSelector(
   selectDebuggerState,
   (state: DebuggerState): number => {

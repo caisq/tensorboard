@@ -23,14 +23,17 @@ limitations under the License.
 
 .op-type {
   display: inline-block;
-  width: 30%;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  width: 80px;
 }
 
 .graph-execution-index {
   display: inline-block;
   text-align: right;
-  width: 10%;
-  /* padding-right: 2px; */
+  width: 40px;
+  padding-right: 4px;
 }
 
 .tensor-container {
@@ -38,10 +41,12 @@ limitations under the License.
 }
 
 .tensor-item {
+  display: flex;
+  flex-wrap: nowrap;
   height: 24px;
   line-height: 24px;
   text-align: left;
-  vertical-align: middle;
+  vertical-align: top;
   white-space: nowrap;
   width: 100%;
 }
@@ -50,8 +55,9 @@ limitations under the License.
   direction: rtl;
   display: inline-block;
   overflow: hidden;
+  padding-right: 8px;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
-  width: 60%;
+  width: 240px;
 }

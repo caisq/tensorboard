@@ -13,7 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+} from '@angular/core';
 
 import {GraphExecutionDigest} from '../../store/debugger_types';
 
@@ -30,34 +36,9 @@ export class GraphExecutionsComponent {
   @Input()
   graphExecutionDigests: {[index: number]: GraphExecutionDigest} = {};
 
-  // @Input()
-  // opNames: string[] | null = ["Mul", "Mul", "Mul", "Mul", "Mul", "Mul"];
-
   @Input()
   graphExecutionIndices: number[] | null = null;
 
-  // opNames1: string[] = Array.from({length: this.numGraphExecutions!}).map((_, i) => {
-  //   const graphExecutionDigest = this.graphExecutionDigests[i];
-  //   return graphExecutionDigest === undefined
-  //     ? null
-  //     : graphExecutionDigest.op_name;
-  // });
-
-  // items = Array.from({length: 1000 * 1000}).map((_, i) => `Item #${i}`);
-
-  // items = Array.from({length: this.numGraphExecutions!}).map((_, i) => {
-  //   const graphExecutionDigest = this.graphExecutionDigests[i];
-  //   return graphExecutionDigest === undefined
-  //     ? null
-  //     : graphExecutionDigest.op_name;
-  // });
-
-  scrolledIndexChange(scrollIndex: number) {
-    console.log('scrolledIndexChange:', scrollIndex); // DEBUG
-  }
-
-  // constructor() {
-    // console.log('GraphExecutionsComponent: numGraphExecutions =', this.numGraphExecutions); // DEBUG
-    // console.log('GraphExecutionsComponent: items =', this.items); // DEBUG
-  // }
+  @Output()
+  onScrolledIndexChange = new EventEmitter<number>();
 }

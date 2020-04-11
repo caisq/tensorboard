@@ -39,6 +39,7 @@ import {
   executionScrollToIndex,
   graphExecutionDigestsLoaded,
   graphExecutionDigestsRequested,
+  graphExecutionScrollToIndex,
   numAlertsAndBreakdownLoaded,
   numAlertsAndBreakdownRequested,
   numExecutionsLoaded,
@@ -65,6 +66,7 @@ import {
   getFocusedSourceFileContent,
   getGraphExecutionDigestsLoaded,
   getGraphExecutionPageSize,
+  getGraphExecutionScrollBeginIndex,
   getNumExecutions,
   getNumExecutionsLoaded,
   getLoadedAlertsOfFocusedType,
@@ -601,6 +603,69 @@ export class DebuggerEffects {
   }
 
   /**
+   * Emits when scrolling event leads to need to load new intra-graph execution
+   * digests.
+   */
+  // TODO(cais): Can this be deduplicated with onExecutionScroll()?
+  private onGraphExecutionScroll(): Observable<{
+    runId: string;
+    begin: number;
+    end: number;
+  }> {
+    return this.actions$.pipe(
+      ofType(graphExecutionScrollToIndex),
+      withLatestFrom(
+        this.store.select(getActiveRunId),
+        this.store.select(getGraphExecutionScrollBeginIndex),
+        this.store.select(getNumGraphExecutions),
+        this.store.select(getExecutionPageSize)
+      ),
+      filter(([runId]) => runId !== null),
+      map(([, runId, scrollBeginIndex, numGraphExecutions, pageSize]) => {
+        const begin = scrollBeginIndex;
+        const end = Math.min(numGraphExecutions, begin + pageSize);
+        return {
+          runId: runId!,
+          begin,
+          end,
+          pageSize,
+        };
+      }),
+      // TODO(cais): Perhaps we should load non-digest graph executions
+      // directly.
+      withLatestFrom(this.store.select(getGraphExecutionDigestsLoaded)),
+      filter(([, loaded]) => loaded.state !== DataLoadState.LOADING),
+      map(([props, loaded]) => {
+        return {
+          props,
+          loaded,
+          missingPages: getMissingPages(
+            props.begin,
+            props.end,
+            props.pageSize,
+            loaded.numExecutions,
+            loaded.pageLoadedSizes
+          ),
+        };
+      }),
+      filter(({missingPages}) => missingPages.length > 0),
+      map(({props, loaded, missingPages}) => {
+        console.log(
+          `onGraphExecutionScroll(): 300: missingPages:`,
+          missingPages
+        ); // DEBUG
+        const {runId, pageSize} = props;
+        const begin = missingPages[0] * pageSize;
+        const end = Math.min(
+          loaded.numExecutions,
+          (missingPages[missingPages.length - 1] + 1) * pageSize
+        );
+        return {begin, end, runId: runId!};
+      })
+    );
+  }
+
+  /**
    * Load intra-graph execution digests.
    */
   private createGraphExecutionDigestLoader(
@@ -613,17 +678,13 @@ export class DebuggerEffects {
     return prevStream$.pipe(
       filter(({begin, end}) => end > begin),
       tap(() => {
-        // TODO(cais): Add reducer. DO NOT SUBMIT.
         this.store.dispatch(graphExecutionDigestsRequested());
       }),
       mergeMap(({runId, begin, end}) => {
-        console.log(`200 Calling fetchGraphExecutionDigests(), begin=${begin}, end=${end}`); // DEBUG
         return this.dataSource
           .fetchGraphExecutionDigests(runId, begin, end)
           .pipe(
             tap((digests) => {
-              console.log('200 fetchGraphExecutionDigests() result:', digests);
-              // TODO(cais): Add reducer. DO NOT SUBMIT.
               this.store.dispatch(graphExecutionDigestsLoaded(digests));
             }),
             map(() => void null)
@@ -912,6 +973,9 @@ export class DebuggerEffects {
           )
         );
 
+        ///////////////////////////////////////////////
+        // Effects related to intra-graph execution. //
+        ///////////////////////////////////////////////
         const onNumGraphExecutionLoaded$ = this.createNumGraphExecutionLoader(
           onLoad$
         );
@@ -919,7 +983,10 @@ export class DebuggerEffects {
           onNumGraphExecutionLoaded$
         ); // TODO(cais): Make share() if necessary.
         const onGraphExecutionDigestsLoaded$ = this.createGraphExecutionDigestLoader(
-          this.createInitialGraphExecutionDigest(onInitialGraphExecution$)
+          merge(
+            this.onGraphExecutionScroll(),
+            this.createInitialGraphExecutionDigest(onInitialGraphExecution$)
+          )
         );
 
         const onSourceFileFocused$ = this.onSourceFileFocused();

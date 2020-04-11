@@ -154,6 +154,11 @@ export const graphExecutionDigestsLoaded = createAction(
   props<GraphExecutionDigestsResponse>()
 );
 
+export const graphExecutionScrollToIndex = createAction(
+  '[Debugger] Scroll the Graph Execution List to Given Index',
+  props<{index: number}>()
+);
+
 /**
  * Actions related to source files and stack traces.
  */
