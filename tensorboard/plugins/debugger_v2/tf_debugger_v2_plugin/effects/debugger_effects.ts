@@ -246,15 +246,18 @@ export class DebuggerEffects {
       }),
       tap(() => this.store.dispatch(numGraphExecutionsRequested())),
       mergeMap(([, runs]) => {
-        // TODO(cais): Handle multiple runs. Currently it is assumed that there
-        // is at most only one debugger run available.
         const runId = Object.keys(runs)[0];
         const begin = 0;
         const end = 0;
+        console.log('Calling fetchGraphExecutionDigests():', runId, begin, end); // DEBUG
         return this.dataSource
           .fetchGraphExecutionDigests(runId, begin, end)
           .pipe(
             tap((digests) => {
+              console.log(
+                '200 fetchGraphExecutionDigests(): digests=',
+                digests
+              ); // DEBUG
               this.store.dispatch(
                 numGraphExecutionsLoaded({
                   numGraphExecutions: digests.num_digests,
