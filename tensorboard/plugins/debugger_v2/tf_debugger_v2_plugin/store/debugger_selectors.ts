@@ -200,21 +200,21 @@ export const getNumGraphExecutionsLoaded = createSelector(
   (state: DebuggerState): LoadState => {
     return state.graphExecutions.numExecutionsLoaded;
   }
-); // TODO(cais): Add unit test.
+);
 
 export const getGraphExecutionDigestsLoaded = createSelector(
   selectDebuggerState,
   (state: DebuggerState): ExecutionDigestLoadState => {
     return state.graphExecutions.executionDigestsLoaded;
   }
-); // TODO(cais): Add unit test.
+);
 
 export const getNumGraphExecutions = createSelector(
   selectDebuggerState,
   (state: DebuggerState): number => {
     return state.graphExecutions.executionDigestsLoaded.numExecutions;
   }
-); // TODO(cais): Add unit test.
+);
 
 export const getGraphExecutionScrollBeginIndex = createSelector(
   selectDebuggerState,

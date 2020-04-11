@@ -22,9 +22,12 @@ import {
   getFocusedExecutionStackFrames,
   getFocusedSourceFileContent,
   getFocusedSourceFileIndex,
+  getGraphExecutionDigestsLoaded,
   getLoadedAlertsOfFocusedType,
   getNumAlerts,
   getNumAlertsOfFocusedType,
+  getNumGraphExecutions,
+  getNumGraphExecutionsLoaded,
   getFocusAlertTypesOfVisibleExecutionDigests,
   getSourceFileList,
   getSourceFileListLoaded,
@@ -37,6 +40,7 @@ import {
 } from './debugger_types';
 import {
   createAlertsState,
+  createDebuggerGraphExecutionsState,
   createDebuggerSourceCodeState,
   createDebuggerState,
   createState,
@@ -697,6 +701,121 @@ describe('debugger selectors', () => {
         loadState: DataLoadState.LOADED,
         lines: ['', 'import tensorflow as tf'],
       });
+    });
+  });
+
+  describe('getNumGraphExecutionsLoaded', () => {
+    it('returns correct NOT_LOADED state', () => {
+      const state = createState(createDebuggerState());
+      const loaded = getNumGraphExecutionsLoaded(state);
+      expect(loaded.state).toBe(DataLoadState.NOT_LOADED);
+      expect(loaded.lastLoadedTimeInMs).toBe(null);
+    });
+
+    it('returns correct LOADING state', () => {
+      const state = createState(
+        createDebuggerState({
+          graphExecutions: createDebuggerGraphExecutionsState({
+            numExecutionsLoaded: {
+              state: DataLoadState.LOADING,
+              lastLoadedTimeInMs: null,
+            },
+          }),
+        })
+      );
+      const loaded = getNumGraphExecutionsLoaded(state);
+      expect(loaded.state).toBe(DataLoadState.LOADING);
+      expect(loaded.lastLoadedTimeInMs).toBe(null);
+    });
+
+    it('returns correct LOADED state', () => {
+      const state = createState(
+        createDebuggerState({
+          graphExecutions: createDebuggerGraphExecutionsState({
+            numExecutionsLoaded: {
+              state: DataLoadState.LOADED,
+              lastLoadedTimeInMs: 1234,
+            },
+          }),
+        })
+      );
+      const loaded = getNumGraphExecutionsLoaded(state);
+      expect(loaded.state).toBe(DataLoadState.LOADED);
+      expect(loaded.lastLoadedTimeInMs).toBe(1234);
+    });
+  });
+
+  describe('getNumGraphExecutionsLoaded', () => {
+    it('returns correct initial NOT_LOADED state', () => {
+      const state = createState(createDebuggerState());
+      const loaded = getGraphExecutionDigestsLoaded(state);
+      expect(loaded.state).toBe(DataLoadState.NOT_LOADED);
+      expect(loaded.lastLoadedTimeInMs).toBe(null);
+      expect(loaded.pageLoadedSizes).toEqual({});
+      expect(loaded.numExecutions).toEqual(0);
+    });
+
+    it('returns correct LOADING state', () => {
+      const state = createState(
+        createDebuggerState({
+          graphExecutions: createDebuggerGraphExecutionsState({
+            executionDigestsLoaded: {
+              state: DataLoadState.LOADING,
+              lastLoadedTimeInMs: null,
+              pageLoadedSizes: {},
+              numExecutions: 10,
+            },
+          }),
+        })
+      );
+      const loaded = getGraphExecutionDigestsLoaded(state);
+      expect(loaded.state).toBe(DataLoadState.LOADING);
+      expect(loaded.lastLoadedTimeInMs).toBe(null);
+      expect(loaded.pageLoadedSizes).toEqual({});
+      expect(loaded.numExecutions).toEqual(10);
+    });
+
+    it('returns correct LOADED state', () => {
+      const state = createState(
+        createDebuggerState({
+          graphExecutions: createDebuggerGraphExecutionsState({
+            executionDigestsLoaded: {
+              state: DataLoadState.LOADED,
+              lastLoadedTimeInMs: 1234,
+              pageLoadedSizes: {0: 10},
+              numExecutions: 10,
+            },
+          }),
+        })
+      );
+      const loaded = getGraphExecutionDigestsLoaded(state);
+      expect(loaded.state).toBe(DataLoadState.LOADED);
+      expect(loaded.lastLoadedTimeInMs).toBe(1234);
+      expect(loaded.pageLoadedSizes).toEqual({0: 10});
+      expect(loaded.numExecutions).toEqual(10);
+    });
+  });
+
+  describe('getNumGraphExecutions', () => {
+    it('returns correct initial zero state', () => {
+      const state = createState(createDebuggerState());
+      expect(getNumGraphExecutions(state)).toBe(0);
+    });
+
+    it('returns correct non-zero state', () => {
+      const state = createState(
+        createDebuggerState({
+          graphExecutions: createDebuggerGraphExecutionsState({
+            executionDigestsLoaded: {
+              state: DataLoadState.LOADING,
+              lastLoadedTimeInMs: null,
+              pageLoadedSizes: {},
+              numExecutions: 10,
+            },
+          }),
+        })
+      );
+      expect(getNumGraphExecutions(state)).toBe(10);
     });
   });
 });
