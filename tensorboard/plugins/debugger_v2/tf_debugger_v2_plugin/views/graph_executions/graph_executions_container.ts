@@ -26,7 +26,7 @@ import {GraphExecutionDigest, State} from '../../store/debugger_types';
     <graph-executions-component
       [numGraphExecutions]="numGraphExecutions$ | async"
       [graphExecutionDigests]="graphExecutionDigests$ | async"
-      [opNames]="opNames$ | async"
+      [graphExecutionIndices]="graphExecutionIndices$ | async"
     ></graph-executions-component>
   `,
 })
@@ -37,19 +37,33 @@ export class GraphExecutionsContainer {
     select(getGraphExecutionDigests)
   );
 
-  readonly opNames$ = this.store.pipe(
+  // readonly opNames$ = this.store.pipe(
+  //   select(
+  //     createSelector(
+  //       getGraphExecutionDigests,
+  //       getNumGraphExecutions,
+  //       (graphExecutionDigests: {[index: number]: GraphExecutionDigest}, numGraphExecution: number): string[] => {
+  //         console.log('numGraphExecution=', numGraphExecution);  // DEBUG
+  //         const output: string[] = new Array<string>(numGraphExecution);
+  //         for (let i = 0; i < numGraphExecution; ++i) {
+  //           output[i] = graphExecutionDigests[i] === undefined ? '' : graphExecutionDigests[i].op_name;
+  //         }
+  //         console.log('output:', output);  // DEBUG
+  //         return output;
+  //       }
+  //     )
+  //   )
+  // )
+
+  readonly graphExecutionIndices$ = this.store.pipe(
     select(
       createSelector(
-        getGraphExecutionDigests,
         getNumGraphExecutions,
-        (graphExecutionDigests: {[index: number]: GraphExecutionDigest}, numGraphExecution: number): string[] => {
-          console.log('numGraphExecution=', numGraphExecution);  // DEBUG
-          const output: string[] = new Array<string>(numGraphExecution);
-          for (let i = 0; i < numGraphExecution; ++i) {
-            output[i] = graphExecutionDigests[i] === undefined ? '' : graphExecutionDigests[i].op_name;
+        (numGraphExecution: number): number[] | null => {
+          if (numGraphExecution === 0) {
+            return null;
           }
-          console.log('output:', output);  // DEBUG
-          return output;
+          return Array.from({length: numGraphExecution}).map((_, i) => i);
         }
       )
     )

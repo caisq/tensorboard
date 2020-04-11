@@ -555,7 +555,7 @@ const reducer = createReducer(
             lastLoadedTimeInMs: Date.now(),
           },
           executionDigestsLoaded: {
-            ...state.executions.executionDigestsLoaded,
+            ...state.graphExecutions.executionDigestsLoaded,
             numExecutions: numGraphExecutions,
           },
         },

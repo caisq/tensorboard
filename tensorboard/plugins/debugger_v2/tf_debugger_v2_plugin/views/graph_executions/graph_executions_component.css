@@ -13,13 +13,45 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-.example-viewport {
-  border: 1px solid black;
+.graph-executions-viewport {
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
   font-size: 12px;
   height: 100%;
   width: 100%;
+  overflow-x: hidden;
 }
 
-.example-item {
-  height: 40px;
+.op-type {
+  display: inline-block;
+  width: 30%;
+}
+
+.graph-execution-index {
+  display: inline-block;
+  text-align: right;
+  width: 10%;
+  /* padding-right: 2px; */
+}
+
+.tensor-container {
+  width: 100%;
+}
+
+.tensor-item {
+  height: 24px;
+  line-height: 24px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.tensor-name {
+  direction: rtl;
+  display: inline-block;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 60%;
 }

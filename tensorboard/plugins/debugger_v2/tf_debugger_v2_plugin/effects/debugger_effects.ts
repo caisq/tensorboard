@@ -249,7 +249,6 @@ export class DebuggerEffects {
         const runId = Object.keys(runs)[0];
         const begin = 0;
         const end = 0;
-        console.log('Calling fetchGraphExecutionDigests()'); // DEBUG
         return this.dataSource
           .fetchGraphExecutionDigests(runId, begin, end)
           .pipe(
@@ -618,11 +617,12 @@ export class DebuggerEffects {
         this.store.dispatch(graphExecutionDigestsRequested());
       }),
       mergeMap(({runId, begin, end}) => {
+        console.log(`200 Calling fetchGraphExecutionDigests(), begin=${begin}, end=${end}`); // DEBUG
         return this.dataSource
           .fetchGraphExecutionDigests(runId, begin, end)
           .pipe(
             tap((digests) => {
-              console.log('fetchGraphExecutionDigests() result:', digests);
+              console.log('200 fetchGraphExecutionDigests() result:', digests);
               // TODO(cais): Add reducer. DO NOT SUBMIT.
               this.store.dispatch(graphExecutionDigestsLoaded(digests));
             }),
