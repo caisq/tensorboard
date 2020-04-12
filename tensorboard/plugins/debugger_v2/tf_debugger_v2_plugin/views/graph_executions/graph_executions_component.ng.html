@@ -15,28 +15,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-<div>Graph Executions ({{numGraphExecutions}})</div>
+<div class="graph-executions-container">
+  <div>Graph Executions ({{numGraphExecutions}})</div>
 
-<!-- <div *ngIf="numGraphExecutions > 0"> -->
-<cdk-virtual-scroll-viewport
-  #executionsScroll
-  itemSize="24"
-  class="graph-executions-viewport"
-  (scrolledIndexChange)="onScrolledIndexChange.emit($event)"
->
-  <div *cdkVirtualFor="let i of graphExecutionIndices" class="tensor-container">
-    <div *ngIf="graphExecutionDigests[i]" class="tensor-item">
-      <div class="graph-execution-index">
-        {{ i }}
-      </div>
-      <div class="tensor-name">
-        {{ graphExecutionDigests[i].op_name }}:{{
-        graphExecutionDigests[i].output_slot }}
-      </div>
-      <div class="op-type">
-        {{ graphExecutionDigests[i].op_type }}
+  <cdk-virtual-scroll-viewport
+    #executionsScroll
+    itemSize="24"
+    class="graph-executions-viewport"
+    (scrolledIndexChange)="onScrolledIndexChange.emit($event)"
+  >
+    <div
+      *cdkVirtualFor="let i of graphExecutionIndices"
+      class="tensor-container"
+    >
+      <div *ngIf="graphExecutionDigests[i]" class="tensor-item">
+        <div class="graph-execution-index">
+          {{ i }}
+        </div>
+        <div class="tensor-name">
+          {{ graphExecutionDigests[i].op_name }}:{{
+          graphExecutionDigests[i].output_slot }}
+        </div>
+        <div class="op-type">
+          {{ graphExecutionDigests[i].op_type }}
+        </div>
       </div>
     </div>
-  </div>
-</cdk-virtual-scroll-viewport>
-<!-- </div> -->
+  </cdk-virtual-scroll-viewport>
+</div>

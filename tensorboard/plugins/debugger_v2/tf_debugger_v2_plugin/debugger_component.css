@@ -21,19 +21,22 @@ limitations under the License.
 }
 
 .top-section {
+  height: 360px;
+  overflow: hidden;
+  padding: 6px 0;
   width: 100%;
 }
 
 tf-debugger-v2-alerts {
   display: inline-block;
-  height: 360px;
+  height: 100%;
   vertical-align: top;
   width: 15%;
 }
 
 tf-debugger-v2-graph-executions {
   display: inline-block;
-  height: 360px;
+  height: 100%;
   vertical-align: top;
   width: 30%;
 }
@@ -52,7 +55,7 @@ tf-debugger-v2-stack-trace {
 
 tf-debugger-v2-timeline {
   display: inline-block;
-  height: 360px;
+  height: 100%;
   vertical-align: top;
   width: 55%;
 }
