@@ -25,6 +25,7 @@ import {
 import {
   createAlertsState,
   createDebuggerExecutionsState,
+  createDebuggerGraphExecutionsState,
   createDebuggerSourceCodeState,
   createDebuggerState,
   createDebuggerStateWithLoadedExecutionDigests,
@@ -892,7 +893,7 @@ describe('Debugger reducers', () => {
 
   for (const scrollIndex of [-1, 0.5, 51, 100]) {
     it(
-      `Invalid executionScrollToIndex (${scrollIndex}) does not change scrollBeginIdnex:` +
+      `Invalid executionScrollToIndex (${scrollIndex}) does not change scrollBeginIndex:` +
         `displayCount < numExecutions`,
       () => {
         const originalScrollBeginIndex = 3;
@@ -915,7 +916,7 @@ describe('Debugger reducers', () => {
     // In these tests, `displayCount` is 50 and there are only 20 execution digests
     // (< 50). Hence, the only valid scrolling begin index is 0.
     it(
-      `Invalid executionScrollToIndex (${scrollIndex}) does not change scrollBeginIdnex:` +
+      `Invalid executionScrollToIndex (${scrollIndex}) does not change scrollBeginIndex:` +
         `displayCount >= numExecutions`,
       () => {
         const originalScrollBeginIndex = 3;
@@ -1322,5 +1323,204 @@ describe('Debugger reducers', () => {
         lines: null,
       },
     ]);
+  });
+
+  describe('numGraphExecutionsRequested', () => {
+    it('updates load state', () => {
+      const state = createDebuggerState({
+        activeRunId: '__default_debugger_run__',
+      });
+      const nextState = reducers(state, actions.numGraphExecutionsRequested());
+      expect(nextState.graphExecutions.numExecutionsLoaded.state).toBe(
+        DataLoadState.LOADING
+      );
+    });
+  });
+
+  describe('numGraphExecutionsLoaded', () => {
+    it('updates load state', () => {
+      const state = createDebuggerState({
+        activeRunId: '__default_debugger_run__',
+        graphExecutions: createDebuggerGraphExecutionsState({
+          numExecutionsLoaded: {
+            state: DataLoadState.LOADING,
+            lastLoadedTimeInMs: null,
+          },
+        }),
+      });
+      const t0 = Date.now();
+      const nextState = reducers(
+        state,
+        actions.numGraphExecutionsLoaded({numGraphExecutions: 12345})
+      );
+      expect(nextState.graphExecutions.numExecutionsLoaded.state).toBe(
+        DataLoadState.LOADED
+      );
+      expect(
+        nextState.graphExecutions.numExecutionsLoaded.lastLoadedTimeInMs
+      ).toBeGreaterThanOrEqual(t0);
+      expect(
+        nextState.graphExecutions.executionDigestsLoaded.numExecutions
+      ).toEqual(12345);
+    });
+  });
+
+  describe('graphExecutionDigestsRequested', () => {
+    it('updates load state', () => {
+      const state = createDebuggerState({
+        activeRunId: '__default_debugger_run__',
+      });
+      const nextState = reducers(
+        state,
+        actions.graphExecutionDigestsRequested()
+      );
+      expect(nextState.graphExecutions.executionDigestsLoaded.state).toBe(
+        DataLoadState.LOADING
+      );
+    });
+  });
+
+  describe('graphExecutionDigestsLoaded', () => {
+    it('updates num of digests, digests, load state & pageLoadedSizes', () => {
+      const state = createDebuggerState({
+        activeRunId: '__default_debugger_run__',
+        graphExecutions: createDebuggerGraphExecutionsState({
+          executionDigestsLoaded: {
+            state: DataLoadState.LOADING,
+            lastLoadedTimeInMs: null,
+            pageLoadedSizes: {},
+            numExecutions: 1000,
+          },
+          pageSize: 2,
+        }),
+      });
+      const t0 = Date.now();
+      const nextState = reducers(
+        state,
+        actions.graphExecutionDigestsLoaded({
+          begin: 2,
+          end: 4,
+          // num_digests has increased.
+          num_digests: 2000,
+          graph_execution_digests: [
+            {
+              op_name: 'FooOp_1',
+              op_type: 'FooOp',
+              output_slot: 0,
+              graph_id: 'deadbeef',
+            },
+            {
+              op_name: 'BarOp_1',
+              op_type: 'BarOp',
+              output_slot: 1,
+              graph_id: 'deadbeef',
+            },
+          ],
+        })
+      );
+      expect(nextState.graphExecutions.executionDigestsLoaded.state).toBe(
+        DataLoadState.LOADED
+      );
+      expect(
+        nextState.graphExecutions.executionDigestsLoaded.lastLoadedTimeInMs
+      ).toBeGreaterThanOrEqual(t0);
+      // Assert numExecutions has been updated as a result of the `num_digests`
+      // increase.
+      expect(
+        nextState.graphExecutions.executionDigestsLoaded.numExecutions
+      ).toBe(2000);
+      expect(
+        nextState.graphExecutions.executionDigestsLoaded.pageLoadedSizes
+      ).toEqual({1: 2});
+      expect(nextState.graphExecutions.graphExecutionDigests).toEqual({
+        2: {
+          op_name: 'FooOp_1',
+          op_type: 'FooOp',
+          output_slot: 0,
+          graph_id: 'deadbeef',
+        },
+        3: {
+          op_name: 'BarOp_1',
+          op_type: 'BarOp',
+          output_slot: 1,
+          graph_id: 'deadbeef',
+        },
+      });
+    });
+
+    it('handles empty response correctly', () => {
+      const state = createDebuggerState({
+        activeRunId: '__default_debugger_run__',
+        graphExecutions: createDebuggerGraphExecutionsState({
+          executionDigestsLoaded: {
+            state: DataLoadState.LOADING,
+            lastLoadedTimeInMs: null,
+            pageLoadedSizes: {},
+            numExecutions: 1000,
+          },
+          pageSize: 2,
+        }),
+      });
+      const t0 = Date.now();
+      const nextState = reducers(
+        state,
+        actions.graphExecutionDigestsLoaded({
+          begin: 0,
+          end: 0,
+          // num_digests has increased.
+          num_digests: 2000,
+          graph_execution_digests: [],
+        })
+      );
+      expect(nextState.graphExecutions.executionDigestsLoaded.state).toBe(
+        DataLoadState.LOADED
+      );
+      expect(
+        nextState.graphExecutions.executionDigestsLoaded.lastLoadedTimeInMs
+      ).toBeGreaterThanOrEqual(t0);
+      // Assert numExecutions has been updated as a result of the `num_digests`
+      // increase.
+      expect(
+        nextState.graphExecutions.executionDigestsLoaded.numExecutions
+      ).toBe(2000);
+      expect(
+        nextState.graphExecutions.executionDigestsLoaded.pageLoadedSizes
+      ).toEqual({});
+      expect(nextState.graphExecutions.graphExecutionDigests).toEqual({});
+    });
+  });
+
+  describe('graphExecutionScrollToIndex', () => {
+    for (const index of [48, 52]) {
+      it(`updates scroll-begin index: to ${index}`, () => {
+        const state = createDebuggerState({
+          activeRunId: '__default_debugger_run__',
+          graphExecutions: createDebuggerGraphExecutionsState({
+            scrollBeginIndex: 50,
+          }),
+        });
+        const nextState = reducers(
+          state,
+          actions.graphExecutionScrollToIndex({index})
+        );
+        expect(nextState.graphExecutions.scrollBeginIndex).toBe(index);
+      });
+    }
+
+    for (const index of [-1, 1.2, NaN]) {
+      it(`throws error on invalid index: ${index}`, () => {
+        const state = createDebuggerState({
+          activeRunId: '__default_debugger_run__',
+          graphExecutions: createDebuggerGraphExecutionsState({
+            scrollBeginIndex: 50,
+          }),
+        });
+        expect(() =>
+          reducers(state, actions.graphExecutionScrollToIndex({index}))
+        ).toThrowError(
+          /scroll to negative or non-integer graph-execution index/
+        );
+      });
+    }
   });
 });

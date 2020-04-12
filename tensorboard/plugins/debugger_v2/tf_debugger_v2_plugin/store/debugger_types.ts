@@ -209,15 +209,20 @@ export interface Alerts {
   focusType: AlertType | null;
 }
 
-// TODO(cais): Add doc string.
+/**
+ * Base interface shared between top-level and intra-graph executions.
+ *
+ * Supports paged lazy loading of digess (i.e., concise data objects
+ * about the execution events.)
+ */
 export interface PagedExecutions {
-  // Load state for the total number of top-level executions.
+  // Load state for the total number of top-level or intra-graph executions.
   // numExecutionsLoaded load state can go from LOADED to LOADING, as
   // the backend may keep reading in new data and see an increase in
   // the number of execution events, which the frontend will in turn see.
   numExecutionsLoaded: LoadState;
 
-  // Load state for loading ExecutionDigests.
+  // Load state for loading `ExecutionDigest`s or `GraphExecutionDigest`s.
   // executionDigestsLoaded load state can go from LOADED to LOADING, as
   // the execution digests are loaded in pages.
   executionDigestsLoaded: ExecutionDigestLoadState;
@@ -242,17 +247,19 @@ export interface PagedExecutions {
 
 // TODO(cais): Add doc string.
 export interface Executions extends PagedExecutions {
-  // Execution digests the frontend has loaded so far.
+  // Top-level (eager) execution digests the frontend has loaded so far.
   executionDigests: {[index: number]: ExecutionDigest};
 
-  // Detailed data objects.
+  // Detailed data objects about top-level execution.
   executionData: {[index: number]: Execution};
 }
 
 // TODO(cais): Add doc string.
 export interface GraphExecutions extends PagedExecutions {
+  // Intra-graph execution digests the frontend has loaded so far.
   graphExecutionDigests: {[index: number]: GraphExecutionDigest};
 
+  // Detailed data objects about intra-graph execution.
   graphExecutionData: {[index: number]: Execution};
 }
 

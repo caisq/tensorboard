@@ -522,8 +522,7 @@ const reducer = createReducer(
   on(
     actions.numGraphExecutionsRequested,
     (state: DebuggerState): DebuggerState => {
-      const runId = state.activeRunId;
-      if (runId === null) {
+      if (state.activeRunId === null) {
         return state;
       }
       return {
@@ -541,8 +540,7 @@ const reducer = createReducer(
   on(
     actions.numGraphExecutionsLoaded,
     (state: DebuggerState, {numGraphExecutions}): DebuggerState => {
-      const runId = state.activeRunId;
-      if (runId === null) {
+      if (state.activeRunId === null) {
         return state;
       }
       const newState = {
@@ -565,13 +563,11 @@ const reducer = createReducer(
       }
       return newState;
     }
-  ), // TODO(cais): Add unit tests for these.
+  ),
   on(
     actions.graphExecutionDigestsRequested,
     (state: DebuggerState): DebuggerState => {
-      console.log('In graphExecutionDigestsRequested reducer'); // DEBUG
-      const runId = state.activeRunId;
-      if (runId === null) {
+      if (state.activeRunId === null) {
         return state;
       }
       return {
@@ -585,16 +581,14 @@ const reducer = createReducer(
         },
       };
     }
-  ), // TODO(cais): Add unit tests for these.
+  ),
   on(
     actions.graphExecutionDigestsLoaded,
     (
       state: DebuggerState,
       digests: GraphExecutionDigestsResponse
     ): DebuggerState => {
-      console.log('In graphExecutionDigestsLoaded reducer'); // DEBUG
-      const runId = state.activeRunId;
-      if (runId === null) {
+      if (state.activeRunId === null) {
         return state;
       }
       const newState: DebuggerState = {
@@ -616,7 +610,7 @@ const reducer = createReducer(
         newState.graphExecutions.graphExecutionDigests[i] =
           digests.graph_execution_digests[i - digests.begin];
       }
-      // Update pagesLoadedInFull.
+      // Update pageLoadedSizes.
       if (digests.end > digests.begin) {
         const pageIndex = digests.begin / state.graphExecutions.pageSize;
         newState.graphExecutions.executionDigestsLoaded.pageLoadedSizes = {
@@ -626,14 +620,14 @@ const reducer = createReducer(
       }
       return newState;
     }
-  ), // TODO(cais): Add unit tests.
+  ),
   on(
     actions.graphExecutionScrollToIndex,
     (state: DebuggerState, action: {index: number}): DebuggerState => {
       if (action.index < 0 || !Number.isInteger(action.index)) {
         throw new Error(
-          `Attempt to scroll to negative or non-integer execution index ` +
-            `(${action.index})`
+          `Attempt to scroll to negative or non-integer graph-execution ` +
+            `index (${action.index})`
         );
       }
       return {
@@ -644,7 +638,7 @@ const reducer = createReducer(
         },
       };
     }
-  ), // TODO(cais): Add unit tests.
+  ),
   ////////////////////////////////////////////////////////
   // Reducers related to source files and stack traces. //
   ////////////////////////////////////////////////////////
