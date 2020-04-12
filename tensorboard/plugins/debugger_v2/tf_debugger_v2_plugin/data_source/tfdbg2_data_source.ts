@@ -110,9 +110,6 @@ export abstract class Tfdbg2DataSource {
 
   /**
    * Fetch the digest objects for top-level executions.
-   * @param run
-   * @param begin
-   * @param end
    */
   abstract fetchExecutionDigests(
     run: string,
@@ -122,9 +119,6 @@ export abstract class Tfdbg2DataSource {
 
   /**
    * Fetch the detailed data objects for top-level executions.
-   * @param run
-   * @param begin
-   * @param end
    */
   abstract fetchExecutionData(
     run: string,
@@ -134,9 +128,6 @@ export abstract class Tfdbg2DataSource {
 
   /**
    * Fetch the digest objects for intra-graph executions.
-   * @param run
-   * @param begin
-   * @param end
    */
   abstract fetchGraphExecutionDigests(
     run: string,
@@ -147,9 +138,6 @@ export abstract class Tfdbg2DataSource {
 
   /**
    * Fetch the detailed data objects for top-level executions.
-   * @param run
-   * @param begin
-   * @param end
    */
   abstract fetchGraphExecutionData(
     run: string,

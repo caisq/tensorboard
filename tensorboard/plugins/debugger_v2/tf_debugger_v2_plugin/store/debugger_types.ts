@@ -166,13 +166,6 @@ export interface ExecutionDigestLoadState extends LoadState {
   numExecutions: number;
 }
 
-// TODO(cais): deduplicate with ExecutionDigestLoadState? Remove.
-// export interface GraphExecutionDigestLoadState extends LoadState {
-//   pageLoadedSizes: {[page: number]: number};
-
-//   numExecutions: number;
-// }
-
 // A map from the type of alert (e.g., 'InfNanAlert') to count of alerts
 // of that type.
 // TODO(cais): Explore tighter typing for `alertType`, ideally by using
@@ -245,7 +238,9 @@ export interface PagedExecutions {
   focusIndex: number | null;
 }
 
-// TODO(cais): Add doc string.
+/**
+ * State of loading of top-level executions.
+ */
 export interface Executions extends PagedExecutions {
   // Top-level (eager) execution digests the frontend has loaded so far.
   executionDigests: {[index: number]: ExecutionDigest};
@@ -254,7 +249,9 @@ export interface Executions extends PagedExecutions {
   executionData: {[index: number]: Execution};
 }
 
-// TODO(cais): Add doc string.
+/**
+ * State of loading of intra-graph executions.
+ */
 export interface GraphExecutions extends PagedExecutions {
   // Intra-graph execution digests the frontend has loaded so far.
   graphExecutionDigests: {[index: number]: GraphExecutionDigest};

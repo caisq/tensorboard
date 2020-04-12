@@ -442,10 +442,6 @@ describe('Debugger effects', () => {
         executionDataResponse
       );
       // Spy for loading number of graph executions.
-      console.log(
-        'Calling createFetchGraphExecutionDigestsSpy(): runId =',
-        runId
-      ); // DEBUG
       const fetchGraphExecutionDigests = createFetchGraphExecutionDigestsSpy(
         runId,
         0,

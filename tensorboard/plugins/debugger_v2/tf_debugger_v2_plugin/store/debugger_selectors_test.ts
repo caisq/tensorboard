@@ -748,7 +748,7 @@ describe('debugger selectors', () => {
     });
   });
 
-  describe('getNumGraphExecutionsLoaded', () => {
+  describe('getGraphExecutionDigestsLoaded', () => {
     it('returns correct initial NOT_LOADED state', () => {
       const state = createState(createDebuggerState());
       const loaded = getGraphExecutionDigestsLoaded(state);

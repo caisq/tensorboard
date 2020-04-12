@@ -249,15 +249,10 @@ export class DebuggerEffects {
         const runId = Object.keys(runs)[0];
         const begin = 0;
         const end = 0;
-        console.log('Calling fetchGraphExecutionDigests():', runId, begin, end); // DEBUG
         return this.dataSource
           .fetchGraphExecutionDigests(runId, begin, end)
           .pipe(
             tap((digests) => {
-              console.log(
-                '200 fetchGraphExecutionDigests(): digests=',
-                digests
-              ); // DEBUG
               this.store.dispatch(
                 numGraphExecutionsLoaded({
                   numGraphExecutions: digests.num_digests,
@@ -653,10 +648,6 @@ export class DebuggerEffects {
       }),
       filter(({missingPages}) => missingPages.length > 0),
       map(({props, loaded, missingPages}) => {
-        console.log(
-          `onGraphExecutionScroll(): 300: missingPages:`,
-          missingPages
-        ); // DEBUG
         const {runId, pageSize} = props;
         const begin = missingPages[0] * pageSize;
         const end = Math.min(
@@ -984,7 +975,7 @@ export class DebuggerEffects {
         );
         const onInitialGraphExecution$ = this.createInitialGraphExecutionDetector(
           onNumGraphExecutionLoaded$
-        ); // TODO(cais): Make share() if necessary.
+        );
         const onGraphExecutionDigestsLoaded$ = this.createGraphExecutionDigestLoader(
           merge(
             this.onGraphExecutionScroll(),
