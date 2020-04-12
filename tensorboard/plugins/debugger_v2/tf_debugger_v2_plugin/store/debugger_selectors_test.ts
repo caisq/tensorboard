@@ -22,7 +22,10 @@ import {
   getFocusedExecutionStackFrames,
   getFocusedSourceFileContent,
   getFocusedSourceFileIndex,
+  getGraphExecutionDigests,
   getGraphExecutionDigestsLoaded,
+  getGraphExecutionPageSize,
+  getGraphExecutionScrollBeginIndex,
   getLoadedAlertsOfFocusedType,
   getNumAlerts,
   getNumAlertsOfFocusedType,
@@ -816,6 +819,69 @@ describe('debugger selectors', () => {
         })
       );
       expect(getNumGraphExecutions(state)).toBe(10);
+    });
+  });
+
+  describe('getGraphExecutionScrollBeginIndex', () => {
+    it('returns initial zero value', () => {
+      const state = createState(createDebuggerState());
+      expect(getGraphExecutionScrollBeginIndex(state)).toBe(0);
+    });
+
+    it('returns non-zero value', () => {
+      const state = createState(
+        createDebuggerState({
+          graphExecutions: createDebuggerGraphExecutionsState({
+            scrollBeginIndex: 1337,
+          }),
+        })
+      );
+      expect(getGraphExecutionScrollBeginIndex(state)).toBe(1337);
+    });
+  });
+
+  describe('getGraphExecutionPageSize', () => {
+    it('returns correct page size', () => {
+      const state = createState(
+        createDebuggerState({
+          graphExecutions: createDebuggerGraphExecutionsState({
+            pageSize: 2048,
+          }),
+        })
+      );
+      expect(getGraphExecutionPageSize(state)).toBe(2048);
+    });
+  });
+
+  describe('getGraphExecutionDigests', () => {
+    it('returns correct initial tempty state', () => {
+      const state = createState(createDebuggerState());
+      expect(getGraphExecutionDigests(state)).toEqual({});
+    });
+
+    it('returns correct graph execution digests', () => {
+      const state = createState(
+        createDebuggerState({
+          graphExecutions: createDebuggerGraphExecutionsState({
+            graphExecutionDigests: {
+              20: {
+                op_name: 'FooOp_1',
+                op_type: 'FooOp',
+                output_slot: 0,
+                graph_id: 'deadbeef',
+              },
+            },
+          }),
+        })
+      );
+      expect(getGraphExecutionDigests(state)).toEqual({
+        20: {
+          op_name: 'FooOp_1',
+          op_type: 'FooOp',
+          output_slot: 0,
+          graph_id: 'deadbeef',
+        },
+      });
     });
   });
 });

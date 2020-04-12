@@ -221,21 +221,21 @@ export const getGraphExecutionScrollBeginIndex = createSelector(
   (state: DebuggerState): number => {
     return state.graphExecutions.scrollBeginIndex;
   }
-); // TODO(cais): Add unit test.
+);
 
 export const getGraphExecutionPageSize = createSelector(
   selectDebuggerState,
   (state: DebuggerState): number => {
     return state.graphExecutions.pageSize;
   }
-); // TODO(cais): Add unit test.
+);
 
 export const getGraphExecutionDigests = createSelector(
   selectDebuggerState,
   (state: DebuggerState): {[index: number]: GraphExecutionDigest} => {
     return state.graphExecutions.graphExecutionDigests;
   }
-); // TODO(cais): Add unit test.
+);
 
 /**
  * Get the focused alert types (if any) of the execution digests current being
