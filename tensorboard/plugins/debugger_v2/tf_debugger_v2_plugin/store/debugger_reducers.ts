@@ -106,6 +106,7 @@ const initialState: DebuggerState = {
     alertsBreakdown: {},
     alerts: {},
     executionIndices: {},
+    graphExecutionIndces: {},
     focusType: null,
   },
   executions: createInitialExecutionsState(),
@@ -238,23 +239,34 @@ const reducer = createReducer(
         Object.assign(updatedAlerts, state.alerts.alerts[alertType]);
       }
 
-      let scrollBeginIndex = state.executions.scrollBeginIndex;
+      let eagerExecScrollBeginIndex = state.executions.scrollBeginIndex;
+      let graphExecScrollBeginIndex = state.graphExecutions.scrollBeginIndex;
       if (alertType === AlertType.INF_NAN_ALERT && begin === 0) {
         // TOOD(cais): Deal with other alert types with execution index.
         const alert = alerts[0] as InfNanAlert;
-        const executionIndex = alert.execution_index;
-        // Try to scroll the first alert to the center of the view.
-        scrollBeginIndex = Math.max(
-          0,
-          executionIndex - Math.floor(state.executions.displayCount / 2)
-        );
+        if (alert.execution_index !== null) {
+          // Try to scroll the eager execution that corresponds to the
+          // first alert to the center of the view.
+          eagerExecScrollBeginIndex = Math.max(
+            0,
+            alert.execution_index -
+              Math.floor(state.executions.displayCount / 2)
+          );
+        }
+        if (alert.graph_execution_trace_index !== null) {
+          graphExecScrollBeginIndex = alert.graph_execution_trace_index;
+        }
       }
 
       return {
         ...state,
         executions: {
           ...state.executions,
-          scrollBeginIndex,
+          scrollBeginIndex: eagerExecScrollBeginIndex,
+        },
+        graphExecutions: {
+          ...state.graphExecutions,
+          scrollBeginIndex: graphExecScrollBeginIndex,
         },
         alerts: {
           ...state.alerts,

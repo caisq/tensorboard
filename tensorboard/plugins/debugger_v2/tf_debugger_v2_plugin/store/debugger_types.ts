@@ -250,6 +250,10 @@ export interface Alerts {
   // types. Applicable only to alerts that involve top-level execution.
   executionIndices: {[alertType: string]: number[]};
 
+  // A map from alert index to graph-execution index, arranged by alert
+  // types. Applicable only to alerts that involve intra-graph execution.
+  graphExecutionIndces: {[alertType: string]: number[]};
+
   // Which type of existing alerts is focused on (if any).
   // `null` corresponds to no focus.
   focusType: AlertType | null;

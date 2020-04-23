@@ -58,6 +58,10 @@ limitations under the License.
   width: 100%;
 }
 
+.tensor-container:hover {
+  background-color: #ffeee0;
+}
+
 .tensor-debug-info {
   display: inline-block;
   overflow: hidden;
