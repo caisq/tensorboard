@@ -25,6 +25,7 @@ import {
   Execution,
   Executions,
   GraphExecution,
+  Graphs,
   ExecutionDigest,
   GraphExecutions,
   InfNanAlert,
@@ -35,6 +36,7 @@ import {
 import {
   createInitialExecutionsState,
   createInitialGraphExecutionsState,
+  createInitialGraphsState,
 } from '../store/debugger_reducers';
 
 export function createTestInfNanAlert(
@@ -119,7 +121,7 @@ export function createDebuggerState(
     alerts: createAlertsState(),
     executions: createDebuggerExecutionsState(),
     graphExecutions: createDebuggerGraphExecutionsState(),
-    graphOps: {},
+    graphs: createDebuggerGraphsState(),
     stackFrames: {},
     sourceCode: {
       sourceFileListLoaded: {
@@ -163,6 +165,13 @@ export function createDebuggerGraphExecutionsState(
 ): GraphExecutions {
   return {
     ...createInitialGraphExecutionsState(),
+    ...override,
+  };
+}
+
+export function createDebuggerGraphsState(override?: Partial<Graphs>) {
+  return {
+    ...createInitialGraphsState(),
     ...override,
   };
 }

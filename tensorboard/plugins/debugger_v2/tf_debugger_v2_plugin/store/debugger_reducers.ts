@@ -19,7 +19,7 @@ import {
   ExecutionDataResponse,
   ExecutionDigestsResponse,
   GraphExecutionDataResponse,
-  GraphExecutionDigestsResponse,
+  GraphOpInfoResponse,
   SourceFileResponse,
 } from '../data_source/tfdbg2_data_source';
 import {findFileIndex} from './debugger_store_utils';
@@ -29,6 +29,7 @@ import {
   DataLoadState,
   DebuggerState,
   Executions,
+  Graphs,
   GraphExecutions,
   InfNanAlert,
   StackFramesById,
@@ -90,6 +91,13 @@ export function createInitialGraphExecutionsState(): GraphExecutions {
   };
 }
 
+export function createInitialGraphsState(): Graphs {
+  return {
+    ops: {},
+    focusedOp: null,
+  };
+}
+
 const initialState: DebuggerState = {
   runs: {},
   runsLoaded: {
@@ -110,7 +118,7 @@ const initialState: DebuggerState = {
   },
   executions: createInitialExecutionsState(),
   graphExecutions: createInitialGraphExecutionsState(),
-  graphOps: {},
+  graphs: createInitialGraphsState(),
   stackFrames: {},
   sourceCode: {
     sourceFileListLoaded: {
@@ -644,6 +652,47 @@ const reducer = createReducer(
       };
     }
   ),
+  ////////////////////////////////////////////////
+  // Reducers related to graph structures.      //
+  ////////////////////////////////////////////////
+  on(
+    actions.graphOpInfoLoaded,
+    (
+      state: DebuggerState,
+      opInfoResponse: GraphOpInfoResponse
+    ): DebuggerState => {
+      const newState: DebuggerState = {
+        ...state,
+        graphs: {
+          ...state.graphs,
+          ops: {
+            ...state.graphs.ops,
+          },
+        },
+      };
+      if (opInfoResponse.inputs) {
+        for (const input of opInfoResponse.inputs) {
+          const graphId = input.graph_ids[input.graph_ids.length - 1];
+          newState.graphs.ops[graphId][input.op_name] = input;
+        }
+        delete opInfoResponse.inputs;
+      }
+      if (opInfoResponse.consumers) {
+        const outputSlots = Object.keys(opInfoResponse.consumers);
+        for (const outputSlot of outputSlots) {
+          for (const consumer of opInfoResponse.consumers[outputSlot]) {
+            const graphId = consumer.graph_ids[consumer.graph_ids.length - 1];
+            newState.graphs.ops[graphId][consumer.op_name] = consumer;
+          }
+        }
+        delete opInfoResponse.consumers;
+      }
+      const graphdId =
+        opInfoResponse.graph_ids[opInfoResponse.graph_ids.length - 1];
+      newState.graphs[graphdId] = opInfoResponse;
+      return newState;
+    }
+  ), // TODO(cais): Add unit test.
   ////////////////////////////////////////////////////////
   // Reducers related to source files and stack traces. //
   ////////////////////////////////////////////////////////

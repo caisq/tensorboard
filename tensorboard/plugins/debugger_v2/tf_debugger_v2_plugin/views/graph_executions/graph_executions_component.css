@@ -70,6 +70,10 @@ limitations under the License.
   width: 100%;
 }
 
+.tensor-item-content {
+  cursor: pointer;
+}
+
 .tensor-name {
   direction: rtl;
   display: block;

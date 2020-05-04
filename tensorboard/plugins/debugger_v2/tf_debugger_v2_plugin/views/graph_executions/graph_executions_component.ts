@@ -43,5 +43,8 @@ export class GraphExecutionsComponent {
   @Output()
   onScrolledIndexChange = new EventEmitter<number>();
 
+  @Output()
+  onClick = new EventEmitter<{graph_id: string; op_name: string}>();
+
   parseDebugTensorValue = parseDebugTensorValue;
 }

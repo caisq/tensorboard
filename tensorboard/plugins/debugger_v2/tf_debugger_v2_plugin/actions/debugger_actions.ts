@@ -28,6 +28,7 @@ import {
   ExecutionDigestsResponse,
   ExecutionDataResponse,
   GraphExecutionDataResponse,
+  GraphOpInfoResponse,
   SourceFileResponse,
 } from '../data_source/tfdbg2_data_source';
 
@@ -158,6 +159,20 @@ export const graphExecutionDataLoaded = createAction(
 export const graphExecutionScrollToIndex = createAction(
   '[Debugger] Scroll Intra-Graph Execution List to Given Index',
   props<{index: number}>()
+);
+
+/**
+ * Actions related to graph ops.
+ */
+
+export const graphOpInfoRequested = createAction(
+  '[Debugger] Graph Op Info Requested',
+  props<{graph_id: string; op_name: string}>()
+);
+
+export const graphOpInfoLoaded = createAction(
+  '[Debugger] Graph Op Info Loaded',
+  props<GraphOpInfoResponse>()
 );
 
 /**

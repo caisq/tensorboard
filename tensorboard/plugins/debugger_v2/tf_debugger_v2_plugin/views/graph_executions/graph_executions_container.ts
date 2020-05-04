@@ -15,7 +15,7 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {createSelector, select, Store} from '@ngrx/store';
 
-import {graphExecutionScrollToIndex} from '../../actions';
+import {graphExecutionScrollToIndex, graphOpInfoRequested} from '../../actions';
 import {getGraphExecutionData, getNumGraphExecutions} from '../../store';
 import {State} from '../../store/debugger_types';
 
@@ -29,6 +29,7 @@ import {State} from '../../store/debugger_types';
       [graphExecutionData]="graphExecutionData$ | async"
       [graphExecutionIndices]="graphExecutionIndices$ | async"
       (onScrolledIndexChange)="onScrolledIndexChange($event)"
+      (onClick)="onClick($event)"
     ></graph-executions-component>
   `,
 })
@@ -53,6 +54,11 @@ export class GraphExecutionsContainer {
 
   onScrolledIndexChange(scrolledIndex: number) {
     this.store.dispatch(graphExecutionScrollToIndex({index: scrolledIndex}));
+  }
+
+  onClick(event: {graph_id: string; op_name: string}) {
+    console.log('onClick(): event=', event); // DEBUG
+    this.store.dispatch(graphOpInfoRequested(event));
   }
 
   constructor(private readonly store: Store<State>) {}

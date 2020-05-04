@@ -158,7 +158,7 @@ export interface GraphOpInfoWithConsumerNames extends GraphOpInfo {
   // Names of the ops that consumer the output tensors to the op,
   // indexed by 0-based output-slot index.
   // This is for data edges only. Control edges are not tracked.
-  consumer_names?: {[output_slot: number]: string};
+  consumer_names?: {[output_slot: number]: string[]};
 }
 
 export enum AlertType {
@@ -359,6 +359,25 @@ export interface GraphExecutions extends PagedExecutions {
   graphExecutionData: {[index: number]: GraphExecution};
 }
 
+/**
+ * State of TensorFlow computation graphs known to the debugger.
+ */
+export interface Graphs {
+  // Information about ops in graphs, indexed by: graph_id / op_name.
+  ops: {
+    [graphId: string]: {
+      [opName: string]: GraphOpInfoWithConsumerNames;
+    };
+  };
+
+  // Op being focused on in the UI (if any).
+  // `null` is for the case in which there is no focus on any graph op.
+  focusedOp: {
+    graphId: string;
+    opName: string;
+  } | null;
+}
+
 // The state of a loaded DebuggerV2 run.
 export interface RunState {
   executions: Executions;
@@ -421,11 +440,7 @@ export interface DebuggerState {
   graphExecutions: GraphExecutions;
 
   // Per-run data for graph ops.
-  graphOps: {
-    [graph_id: string]: {
-      [op_name: string]: GraphOpInfoWithConsumerNames;
-    };
-  };
+  graphs: Graphs;
 
   // Stack frames that have been loaded from data source so far, keyed by
   // stack-frame IDs.
