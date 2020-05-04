@@ -123,6 +123,44 @@ export interface GraphExecution extends GraphExecutionDigest {
   device_name: string;
 }
 
+/**
+ * Information about an op in a graph.
+ */
+export interface GraphOpInfo {
+  // Op type (e.g., "MatMul").
+  op_type: string;
+
+  // Op name, i.e., name of the node in the graph, (e.g., "Dense_2/MatMul").
+  op_name: string;
+
+  device_name: string;
+
+  // IDs of the enclosing graphs for this op, from outermost to innermost.
+  graph_ids: string[];
+
+  // Names of the immediate data input tensors to the op, `null` if an op has
+  // no data inputs tensors. This field does not track control inputs.
+  // E.g., `["Dense_2/ReadVariableOp_1:0", "Dense_2/MatMul:0"]`
+  input_names: string[] | null;
+
+  // The name of the host on which the op is created.
+  host_name: string;
+
+  // IDs of the frame of the stack trace at which the op is created.
+  stack_frame_ids: string[];
+}
+
+/**
+ * Same as `GraphOpInfo`, but with extension to include the names
+ * of the immediate consuming ops.
+ */
+export interface GraphOpInfoWithConsumerNames extends GraphOpInfo {
+  // Names of the ops that consumer the output tensors to the op,
+  // indexed by 0-based output-slot index.
+  // This is for data edges only. Control edges are not tracked.
+  consumer_names?: {[output_slot: number]: string};
+}
+
 export enum AlertType {
   FUNCTION_RECOMPILE_ALERT = 'FunctionRecompilesAlert',
   INF_NAN_ALERT = 'InfNanAlert',
@@ -381,6 +419,13 @@ export interface DebuggerState {
 
   // Per-run data for intra-graph (eager) executions.
   graphExecutions: GraphExecutions;
+
+  // Per-run data for graph ops.
+  graphOps: {
+    [graph_id: string]: {
+      [op_name: string]: GraphOpInfoWithConsumerNames;
+    };
+  };
 
   // Stack frames that have been loaded from data source so far, keyed by
   // stack-frame IDs.

@@ -110,6 +110,7 @@ const initialState: DebuggerState = {
   },
   executions: createInitialExecutionsState(),
   graphExecutions: createInitialGraphExecutionsState(),
+  graphOps: {},
   stackFrames: {},
   sourceCode: {
     sourceFileListLoaded: {

@@ -119,6 +119,7 @@ export function createDebuggerState(
     alerts: createAlertsState(),
     executions: createDebuggerExecutionsState(),
     graphExecutions: createDebuggerGraphExecutionsState(),
+    graphOps: {},
     stackFrames: {},
     sourceCode: {
       sourceFileListLoaded: {
