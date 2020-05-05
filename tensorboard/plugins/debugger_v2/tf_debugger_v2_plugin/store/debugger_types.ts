@@ -143,6 +143,10 @@ export interface GraphOpInfo {
   // E.g., `["Dense_2/ReadVariableOp_1:0", "Dense_2/MatMul:0"]`
   input_names: string[] | null;
 
+  // Debugger-generated IDs for the symbolic output tensor(s) of this op.
+  // For an op without output tensors, this is an empty array.
+  output_tensor_ids: number[];
+
   // The name of the host on which the op is created.
   host_name: string;
 

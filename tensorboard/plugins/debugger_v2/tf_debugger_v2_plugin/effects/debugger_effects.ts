@@ -658,7 +658,15 @@ export class DebuggerEffects {
     );
   }
 
-  private loadGraphOpInfo(): Observable<void> {
+  /**
+   * Listens to graph-op focus events.
+   *
+   * Load graph op info from the /graphs/op_info route when necessary.
+   *
+   * @returns the IDs of the stack frames of the op's creation for downstream
+   * consumption.
+   */
+  private loadGraphOpInfo(): Observable<string[]> {
     return this.actions$.pipe(
       ofType(graphOpFocused),
       withLatestFrom(
@@ -682,11 +690,60 @@ export class DebuggerEffects {
       mergeMap(([actionData, runId]) => {
         const {graph_id, op_name} = actionData;
         return this.dataSource.fetchGraphOpInfo(runId!, graph_id, op_name).pipe(
-          tap((graphOpInfoResponse) => {
+          map((graphOpInfoResponse) => {
+            console.log(
+              'graphOpInfoResponse:',
+              JSON.stringify(graphOpInfoResponse, null, 2)
+            ); // DEBUG
             this.store.dispatch(graphOpInfoLoaded({graphOpInfoResponse}));
-          }),
-          map(() => void null)
+            return graphOpInfoResponse.stack_frame_ids;
+          })
         );
+        // TODO(cais): Add catchError() to pipe.
+      })
+    );
+  } // TODO(cais): Add unit test.
+
+  private loadGraphOpStackFrames(
+    prevStream$: Observable<string[]>
+  ): Observable<void> {
+    return prevStream$.pipe(
+      withLatestFrom(
+        this.store.select(getActiveRunId),
+        this.store.select(getLoadedStackFrames)
+      ),
+      map(([stackFrameIds, runId, loadedStackFrames]) => {
+        const missingStackFrameIds = stackFrameIds.filter(
+          (stackFrameId) => loadedStackFrames[stackFrameId] === undefined
+        );
+        console.log(
+          `${stackFrameIds.length} stack frames, ${missingStackFrameIds.length} missing`
+        ); // DEBUG
+        return {runId, missingStackFrameIds};
+      }),
+      filter(({runId, missingStackFrameIds}) => {
+        return runId !== null && missingStackFrameIds.length > 0;
+      }),
+      mergeMap(({runId, missingStackFrameIds}) => {
+        return this.dataSource
+          .fetchStackFrames(runId!, missingStackFrameIds)
+          .pipe(
+            tap((stackFramesResponse) => {
+              const stackFramesById: {
+                [stackFrameId: string]: StackFrame;
+              } = {};
+              // TODO(cais): Do this reshaping in the backend and simplify
+              // the frontend code here.
+              for (let i = 0; i < missingStackFrameIds.length; ++i) {
+                stackFramesById[missingStackFrameIds[i]] =
+                  stackFramesResponse.stack_frames[i];
+              }
+              this.store.dispatch(
+                stackFramesLoaded({stackFrames: stackFramesById})
+              );
+            }),
+            map(() => void null)
+          );
         // TODO(cais): Add catchError() to pipe.
       })
     );
@@ -919,7 +976,9 @@ export class DebuggerEffects {
      *
      * on graph-execution scroll --> fetch graph-execution data
      *
-     * on graph-op-info requested --> fetch graph-op info
+     * on graph-op-info requested --> fetch graph-op info ------+
+     *                                                          |
+     *                                fetch stack frames <------+
      *
      **/
     this.loadData$ = createEffect(
@@ -986,7 +1045,9 @@ export class DebuggerEffects {
           this.onGraphExecutionScroll()
         );
 
-        const loadGraphOpInfo$ = this.loadGraphOpInfo();
+        const loadGraphOpInfoAndStackTrace$ = this.loadGraphOpStackFrames(
+          this.loadGraphOpInfo()
+        );
 
         // ExecutionDigest and ExecutionData can be loaded in parallel.
         return merge(
@@ -997,7 +1058,7 @@ export class DebuggerEffects {
           loadSourceFileList$,
           onSourceFileFocused$,
           onGraphExecutionScroll$,
-          loadGraphOpInfo$
+          loadGraphOpInfoAndStackTrace$
         ).pipe(
           // createEffect expects an Observable that emits {}.
           map(() => ({}))
