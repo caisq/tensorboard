@@ -114,6 +114,7 @@ const initialState: DebuggerState = {
     alertsBreakdown: {},
     alerts: {},
     executionIndices: {},
+    graphExecutionIndices: {},
     focusType: null,
   },
   executions: createInitialExecutionsState(),
@@ -234,13 +235,22 @@ const reducer = createReducer(
       ]
         ? state.alerts.executionIndices[alertType].slice()
         : [];
+      const graphExecutionIndices: number[] = state.alerts
+        .graphExecutionIndices[alertType]
+        ? state.alerts.graphExecutionIndices[alertType].slice()
+        : [];
       for (let i = 0; i < alerts.length; ++i) {
         const alertIndex = begin + i;
         const alert = alerts[i];
         updatedAlerts[alertIndex] = alert;
         if (alert.alert_type === AlertType.INF_NAN_ALERT) {
           // TOOD(cais): Deal with other alert types with execution index.
-          executionIndices[alertIndex] = (alert as InfNanAlert).execution_index;
+          const infNanAlert = alert as InfNanAlert;
+          executionIndices[alertIndex] = infNanAlert.execution_index;
+          if (infNanAlert.graph_execution_trace_index !== null) {
+            graphExecutionIndices[alertIndex] =
+              infNanAlert.graph_execution_trace_index;
+          }
         }
       }
       if (state.alerts.alerts[alertType] !== undefined) {
@@ -248,6 +258,7 @@ const reducer = createReducer(
       }
 
       let scrollBeginIndex = state.executions.scrollBeginIndex;
+      let graphExecutionFocusIndex = state.graphExecutions.focusIndex;
       if (alertType === AlertType.INF_NAN_ALERT && begin === 0) {
         // TOOD(cais): Deal with other alert types with execution index.
         const alert = alerts[0] as InfNanAlert;
@@ -257,6 +268,9 @@ const reducer = createReducer(
           0,
           executionIndex - Math.floor(state.executions.displayCount / 2)
         );
+        if (alert.graph_execution_trace_index !== null) {
+          graphExecutionFocusIndex = alert.graph_execution_trace_index;
+        }
       }
 
       return {
@@ -264,6 +278,10 @@ const reducer = createReducer(
         executions: {
           ...state.executions,
           scrollBeginIndex,
+        },
+        graphExecutions: {
+          ...state.graphExecutions,
+          focusIndex: graphExecutionFocusIndex,
         },
         alerts: {
           ...state.alerts,
@@ -281,6 +299,10 @@ const reducer = createReducer(
           executionIndices: {
             ...state.alerts.executionIndices,
             [alertType]: executionIndices,
+          },
+          graphExecutionIndices: {
+            ...state.alerts.graphExecutionIndices,
+            [alertType]: graphExecutionIndices,
           },
         },
       };

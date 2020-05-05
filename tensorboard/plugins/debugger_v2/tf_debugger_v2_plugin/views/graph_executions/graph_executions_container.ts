@@ -15,8 +15,12 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {createSelector, select, Store} from '@ngrx/store';
 
-import {graphExecutionScrollToIndex, graphOpInfoRequested} from '../../actions';
-import {getGraphExecutionData, getNumGraphExecutions} from '../../store';
+import {graphExecutionScrollToIndex} from '../../actions';
+import {
+  getGraphExecutionData,
+  getGraphExecutionFocusIndex,
+  getNumGraphExecutions,
+} from '../../store';
 import {State} from '../../store/debugger_types';
 
 /** @typehack */ import * as _typeHackRxjs from 'rxjs';
@@ -28,6 +32,7 @@ import {State} from '../../store/debugger_types';
       [numGraphExecutions]="numGraphExecutions$ | async"
       [graphExecutionData]="graphExecutionData$ | async"
       [graphExecutionIndices]="graphExecutionIndices$ | async"
+      [focusIndex]="focusIndex$ | async"
       (onScrolledIndexChange)="onScrolledIndexChange($event)"
       (onClick)="onClick($event)"
     ></graph-executions-component>
@@ -52,12 +57,13 @@ export class GraphExecutionsContainer {
     )
   );
 
+  readonly focusIndex$ = this.store.pipe(select(getGraphExecutionFocusIndex));
+
   onScrolledIndexChange(scrolledIndex: number) {
     this.store.dispatch(graphExecutionScrollToIndex({index: scrolledIndex}));
   }
 
   onClick(event: {graph_id: string; op_name: string}) {
-    console.log('onClick(): event=', event); // DEBUG
     this.store.dispatch(graphOpInfoRequested(event));
   }
 
