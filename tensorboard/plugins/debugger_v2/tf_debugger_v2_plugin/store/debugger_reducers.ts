@@ -678,6 +678,24 @@ const reducer = createReducer(
   // Reducers related to graph structures.      //
   ////////////////////////////////////////////////
   on(
+    actions.graphOpFocused,
+    (
+      state: DebuggerState,
+      data: {graph_id: string; op_name: string}
+    ): DebuggerState => {
+      return {
+        ...state,
+        graphs: {
+          ...state.graphs,
+          focusedOp: {
+            graphId: data.graph_id,
+            opName: data.op_name,
+          },
+        },
+      };
+    }
+  ), // TODO(cais): Add unit test.
+  on(
     actions.graphOpInfoRequested,
     (
       state: DebuggerState,
@@ -753,7 +771,7 @@ const reducer = createReducer(
       );
       return newState;
     }
-  ), // TODO(cais): Add unit test.
+  ),
   ////////////////////////////////////////////////////////
   // Reducers related to source files and stack traces. //
   ////////////////////////////////////////////////////////

@@ -15,7 +15,7 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {createSelector, select, Store} from '@ngrx/store';
 
-import {graphExecutionScrollToIndex} from '../../actions';
+import {graphExecutionScrollToIndex, graphOpFocused} from '../../actions';
 import {
   getGraphExecutionData,
   getGraphExecutionFocusIndex,
@@ -64,7 +64,7 @@ export class GraphExecutionsContainer {
   }
 
   onClick(event: {graph_id: string; op_name: string}) {
-    this.store.dispatch(graphOpInfoRequested(event));
+    this.store.dispatch(graphOpFocused(event));
   }
 
   constructor(private readonly store: Store<State>) {}

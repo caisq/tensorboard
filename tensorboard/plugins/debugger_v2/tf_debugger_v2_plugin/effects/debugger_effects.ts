@@ -41,6 +41,9 @@ import {
   graphExecutionDataLoaded,
   graphExecutionDataRequested,
   graphExecutionScrollToIndex,
+  graphOpFocused,
+  graphOpInfoLoaded,
+  graphOpInfoRequested,
   numAlertsAndBreakdownLoaded,
   numAlertsAndBreakdownRequested,
   numExecutionsLoaded,
@@ -70,11 +73,13 @@ import {
   getGraphExecutionPageSize,
   getGraphExecutionScrollBeginIndex,
   getGraphExecutionDataLoadingPages,
+  getGraphOps,
   getNumExecutions,
   getNumExecutionsLoaded,
   getLoadedAlertsOfFocusedType,
   getLoadedExecutionData,
   getLoadedStackFrames,
+  getLoadingGraphOps,
   getNumAlertsOfFocusedType,
   getNumGraphExecutions,
   getNumGraphExecutionsLoaded,
@@ -653,6 +658,40 @@ export class DebuggerEffects {
     );
   }
 
+  private loadGraphOpInfo(): Observable<void> {
+    return this.actions$.pipe(
+      ofType(graphOpFocused),
+      withLatestFrom(
+        this.store.select(getActiveRunId),
+        this.store.select(getLoadingGraphOps),
+        this.store.select(getGraphOps)
+      ),
+      filter(([actionData, runId, loadingOps, graphOps]) => {
+        const {graph_id, op_name} = actionData;
+        return (
+          runId !== null &&
+          (loadingOps[graph_id] === undefined ||
+            loadingOps[graph_id].indexOf(op_name) === -1) &&
+          (graphOps[graph_id] === undefined ||
+            graphOps[graph_id][op_name] === undefined)
+        );
+      }),
+      tap(([actionData]) =>
+        this.store.dispatch(graphOpInfoRequested(actionData))
+      ),
+      mergeMap(([actionData, runId]) => {
+        const {graph_id, op_name} = actionData;
+        return this.dataSource.fetchGraphOpInfo(runId!, graph_id, op_name).pipe(
+          tap((graphOpInfoResponse) => {
+            this.store.dispatch(graphOpInfoLoaded({graphOpInfoResponse}));
+          }),
+          map(() => void null)
+        );
+        // TODO(cais): Add catchError() to pipe.
+      })
+    );
+  } // TODO(cais): Add unit test.
+
   /**
    * Emits when user focuses on an alert type.
    *
@@ -880,6 +919,8 @@ export class DebuggerEffects {
      *
      * on graph-execution scroll --> fetch graph-execution data
      *
+     * on graph-op-info requested --> fetch graph-op info
+     *
      **/
     this.loadData$ = createEffect(
       () => {
@@ -945,6 +986,8 @@ export class DebuggerEffects {
           this.onGraphExecutionScroll()
         );
 
+        const loadGraphOpInfo$ = this.loadGraphOpInfo();
+
         // ExecutionDigest and ExecutionData can be loaded in parallel.
         return merge(
           onNumAlertsLoaded$,
@@ -953,7 +996,8 @@ export class DebuggerEffects {
           onNumGraphExecutionLoaded$,
           loadSourceFileList$,
           onSourceFileFocused$,
-          onGraphExecutionScroll$
+          onGraphExecutionScroll$,
+          loadGraphOpInfo$
         ).pipe(
           // createEffect expects an Observable that emits {}.
           map(() => ({}))

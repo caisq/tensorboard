@@ -26,6 +26,7 @@ import {
   ExecutionDigest,
   ExecutionDigestLoadState,
   GraphExecution,
+  GraphOpInfoWithConsumerNames,
   LoadState,
   SourceFileContent,
   SourceFileSpec,
@@ -324,6 +325,20 @@ export const getLoadedExecutionData = createSelector(
   (state: DebuggerState): {[index: number]: Execution} =>
     state.executions.executionData
 );
+
+export const getLoadingGraphOps = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): {[graph_id: string]: string[]} =>
+    state.graphs.loadingOps
+); // TODO(cais): Add unit test.
+
+export const getGraphOps = createSelector(
+  selectDebuggerState,
+  (
+    state: DebuggerState
+  ): {[graph_id: string]: {[op_name: string]: GraphOpInfoWithConsumerNames}} =>
+    state.graphs.ops
+); // TODO(cais): Add unit test.
 
 export const getLoadedStackFrames = createSelector(
   selectDebuggerState,
