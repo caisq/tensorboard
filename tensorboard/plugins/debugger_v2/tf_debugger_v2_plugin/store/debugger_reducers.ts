@@ -19,7 +19,6 @@ import {
   ExecutionDataResponse,
   ExecutionDigestsResponse,
   GraphExecutionDataResponse,
-  GraphOpInfoResponse,
   SourceFileResponse,
 } from '../data_source/tfdbg2_data_source';
 import {findFileIndex} from './debugger_store_utils';
@@ -94,6 +93,7 @@ export function createInitialGraphExecutionsState(): GraphExecutions {
 export function createInitialGraphsState(): Graphs {
   return {
     ops: {},
+    loadingOps: {},
     focusedOp: null,
   };
 }
@@ -656,6 +656,31 @@ const reducer = createReducer(
   // Reducers related to graph structures.      //
   ////////////////////////////////////////////////
   on(
+    actions.graphOpInfoRequested,
+    (
+      state: DebuggerState,
+      data: {graph_id: string; op_name: string}
+    ): DebuggerState => {
+      const {graph_id, op_name} = data;
+      const newState: DebuggerState = {
+        ...state,
+        graphs: {
+          ...state.graphs,
+          loadingOps: {
+            ...state.graphs.loadingOps,
+          },
+        },
+      };
+      if (newState.graphs.loadingOps[graph_id] === undefined) {
+        newState.graphs.loadingOps[graph_id] = [];
+      }
+      if (newState.graphs.loadingOps[graph_id].indexOf(op_name) === -1) {
+        newState.graphs.loadingOps[graph_id].push(op_name);
+      }
+      return newState;
+    }
+  ),
+  on(
     actions.graphOpInfoLoaded,
     (state: DebuggerState, data): DebuggerState => {
       const opInfo = data.graphOpInfoResponse;
@@ -668,6 +693,9 @@ const reducer = createReducer(
           ...state.graphs,
           ops: {
             ...state.graphs.ops,
+          },
+          loadingOps: {
+            ...state.graphs.loadingOps,
           },
         },
       };
@@ -696,6 +724,11 @@ const reducer = createReducer(
         newState.graphs.ops[graphdId] = {};
       }
       newState.graphs.ops[graphdId][opInfo.op_name] = opInfo;
+      // Remove the loading marker for the op.
+      newState.graphs.loadingOps[graphdId].splice(
+        newState.graphs.loadingOps[graphdId].indexOf(opInfo.op_name),
+        1
+      );
       return newState;
     }
   ), // TODO(cais): Add unit test.

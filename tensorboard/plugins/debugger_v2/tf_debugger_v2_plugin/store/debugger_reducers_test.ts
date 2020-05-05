@@ -1500,6 +1500,57 @@ describe('Debugger reducers', () => {
     }
   });
 
+  describe('graphOpInfoRequested', () => {
+    it('creates key for new graph_id', () => {
+      const state = createDebuggerState();
+      const nextState = reducers(
+        state,
+        actions.graphOpInfoRequested({graph_id: 'g8', op_name: 'x'})
+      );
+      expect(nextState.graphs.loadingOps).toEqual({
+        g8: ['x'],
+      });
+    });
+
+    it('adds op to existing graph key', () => {
+      const state = createDebuggerState({
+        graphs: createDebuggerGraphsState({
+          loadingOps: {
+            g1: ['Op1'],
+            g2: ['Op2'],
+          },
+        }),
+      });
+      const nextState = reducers(
+        state,
+        actions.graphOpInfoRequested({graph_id: 'g2', op_name: 'Op3'})
+      );
+      expect(nextState.graphs.loadingOps).toEqual({
+        g1: ['Op1'],
+        g2: ['Op2', 'Op3'],
+      });
+    });
+
+    it('no effect for an already-loading op', () => {
+      const state = createDebuggerState({
+        graphs: createDebuggerGraphsState({
+          loadingOps: {
+            g1: ['Op1'],
+            g2: ['Op2'],
+          },
+        }),
+      });
+      const nextState = reducers(
+        state,
+        actions.graphOpInfoRequested({graph_id: 'g2', op_name: 'Op2'})
+      );
+      expect(nextState.graphs.loadingOps).toEqual({
+        g1: ['Op1'],
+        g2: ['Op2'],
+      });
+    });
+  });
+
   describe('graphOpInfoLoaded', () => {
     it('updates self op, 1 input op and 1 consumer op', () => {
       const opInfo0 = createTestGraphOpInfo();
@@ -1507,6 +1558,9 @@ describe('Debugger reducers', () => {
         graphs: createDebuggerGraphsState({
           ops: {
             g0: {[opInfo0.op_name]: opInfo0},
+          },
+          loadingOps: {
+            g2: ['TestOp_1'],
           },
         }),
       });
@@ -1516,6 +1570,7 @@ describe('Debugger reducers', () => {
       });
       delete opInfo1.consumer_names;
       const opInfo2 = createTestGraphOpInfo({
+        op_name: 'TestOp_1',
         graph_ids: ['g1', 'g2'],
       });
       opInfo1.consumer_names = [[opInfo2.op_name]];
@@ -1547,14 +1602,21 @@ describe('Debugger reducers', () => {
           [opInfo3.op_name]: opInfo3,
         },
       });
+      expect(nextState.graphs.loadingOps).toEqual({
+        g2: [],
+      });
     });
 
-    it('updates self op, 1 input op and 1 consumer op', () => {
+    it('updates self op, 2 input ops and 2 consumer ops', () => {
       const opInfo0 = createTestGraphOpInfo();
       const state = createDebuggerState({
         graphs: createDebuggerGraphsState({
           ops: {
             g0: {[opInfo0.op_name]: opInfo0},
+          },
+          loadingOps: {
+            g1: ['TestOp_11'],
+            g2: ['TestOp_2', 'TestOp_22'],
           },
         }),
       });
@@ -1568,6 +1630,7 @@ describe('Debugger reducers', () => {
       });
       delete opInfo1b.consumer_names;
       const opInfo2 = createTestGraphOpInfo({
+        op_name: 'TestOp_2',
         graph_ids: ['g1', 'g2'],
       });
       opInfo1a.consumer_names = [[opInfo2.op_name]];
@@ -1606,6 +1669,10 @@ describe('Debugger reducers', () => {
           [opInfo3b.op_name]: opInfo3b,
         },
       });
+      expect(nextState.graphs.loadingOps).toEqual({
+        g1: ['TestOp_11'],
+        g2: ['TestOp_22'],
+      });
     });
 
     it('updates self op and input op: no consumer op', () => {
@@ -1615,6 +1682,9 @@ describe('Debugger reducers', () => {
           ops: {
             g0: {[opInfo0.op_name]: opInfo0},
           },
+          loadingOps: {
+            g2: ['TestOp_3'],
+          },
         }),
       });
 
@@ -1623,6 +1693,7 @@ describe('Debugger reducers', () => {
       });
       delete opInfo1.consumer_names;
       const opInfo2 = createTestGraphOpInfo({
+        op_name: 'TestOp_3',
         graph_ids: ['g1', 'g2'],
         consumer_names: [],
       });
@@ -1645,6 +1716,9 @@ describe('Debugger reducers', () => {
           [opInfo2.op_name]: opInfo2,
         },
       });
+      expect(nextState.graphs.loadingOps).toEqual({
+        g2: [],
+      });
     });
 
     it('updates self op and consumer ops: no input ops', () => {
@@ -1654,10 +1728,14 @@ describe('Debugger reducers', () => {
           ops: {
             g0: {[opInfo0.op_name]: opInfo0},
           },
+          loadingOps: {
+            g2: ['TestOp_4'],
+          },
         }),
       });
 
       const opInfo1 = createTestGraphOpInfo({
+        op_name: 'TestOp_4',
         graph_ids: ['g1', 'g2'],
         input_names: null,
       });
@@ -1682,6 +1760,9 @@ describe('Debugger reducers', () => {
           [opInfo1.op_name]: opInfo1,
           [opInfo2.op_name]: opInfo2,
         },
+      });
+      expect(nextState.graphs.loadingOps).toEqual({
+        g2: [],
       });
     });
   });

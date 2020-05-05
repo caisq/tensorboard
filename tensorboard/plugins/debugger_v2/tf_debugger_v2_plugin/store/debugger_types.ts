@@ -367,10 +367,17 @@ export interface GraphExecutions extends PagedExecutions {
  */
 export interface Graphs {
   // Information about ops in graphs, indexed by: graph_id / op_name.
+  // `graph_id` refers to the immediately-enclosing graph of the ops.
   ops: {
     [graphId: string]: {
       [opName: string]: GraphOpInfoWithConsumerNames;
     };
+  };
+
+  // What ops are currently being loaded from the data source.
+  // `graph_id` refers to the immediately-enclosing graph of the ops.
+  loadingOps: {
+    [graphId: string]: string[];
   };
 
   // Op being focused on in the UI (if any).
