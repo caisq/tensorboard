@@ -99,8 +99,11 @@ export interface GraphOpInfoResponse extends GraphOpInfo {
 
   // Information regarding ops that consumer the output tensors to the op,
   // indexed by 0-based output-slot index.
+  // For an op without any output slots, this is an empty array.
+  // For an output slot without any consumers, the corresponding element
+  // is an empty array.
   // This is for data edges only. Control edges are not tracked.
-  consumers?: {[output_slot: number]: GraphOpInfo[]};
+  consumers?: GraphOpInfo[][];
 }
 
 /**

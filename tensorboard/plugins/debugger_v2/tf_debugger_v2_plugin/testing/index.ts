@@ -25,6 +25,7 @@ import {
   Execution,
   Executions,
   GraphExecution,
+  GraphOpInfoWithConsumerNames,
   Graphs,
   ExecutionDigest,
   GraphExecutions,
@@ -69,6 +70,24 @@ export function createTestExecutionData(
     graph_id: null,
     tensor_debug_mode: 2,
     debug_tensor_values: [[-1, 0]],
+    ...override,
+  };
+}
+
+let testOpCounter = 0;
+
+export function createTestGraphOpInfo(
+  override?: Partial<GraphOpInfoWithConsumerNames>
+): GraphOpInfoWithConsumerNames {
+  return {
+    op_type: 'ChainOp',
+    op_name: `ChainOp_${testOpCounter++}`,
+    device_name: '/GPU:0',
+    input_names: [`ChainOp_${testOpCounter - 1}`],
+    consumer_names: [[`ChainOp_${testOpCounter + 1}`]],
+    graph_ids: ['g0', 'g1'],
+    host_name: 'localhost',
+    stack_frame_ids: ['a0', 'b1', 'c2'],
     ...override,
   };
 }

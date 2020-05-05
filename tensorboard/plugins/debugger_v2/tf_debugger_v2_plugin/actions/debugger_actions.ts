@@ -172,7 +172,7 @@ export const graphOpInfoRequested = createAction(
 
 export const graphOpInfoLoaded = createAction(
   '[Debugger] Graph Op Info Loaded',
-  props<GraphOpInfoResponse>()
+  props<{graphOpInfoResponse: GraphOpInfoResponse}>()
 );
 
 /**

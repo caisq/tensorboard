@@ -156,9 +156,12 @@ export interface GraphOpInfo {
  */
 export interface GraphOpInfoWithConsumerNames extends GraphOpInfo {
   // Names of the ops that consumer the output tensors to the op,
-  // indexed by 0-based output-slot index.
+  // indexed by 0-based output-slot index. E.g., ['Dense_3/BiasAdd'].
+  // For an op without any output slots, this is an empty array.
+  // For an output slot without any consumers, the corresponding
+  // element is an empty array.
   // This is for data edges only. Control edges are not tracked.
-  consumer_names?: {[output_slot: number]: string[]};
+  consumer_names?: string[][];
 }
 
 export enum AlertType {

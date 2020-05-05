@@ -657,10 +657,11 @@ const reducer = createReducer(
   ////////////////////////////////////////////////
   on(
     actions.graphOpInfoLoaded,
-    (
-      state: DebuggerState,
-      opInfoResponse: GraphOpInfoResponse
-    ): DebuggerState => {
+    (state: DebuggerState, data): DebuggerState => {
+      const opInfo = data.graphOpInfoResponse;
+      const {inputs, consumers} = opInfo;
+      delete opInfo.inputs;
+      delete opInfo.consumers;
       const newState: DebuggerState = {
         ...state,
         graphs: {
@@ -670,26 +671,31 @@ const reducer = createReducer(
           },
         },
       };
-      if (opInfoResponse.inputs) {
-        for (const input of opInfoResponse.inputs) {
+      if (inputs) {
+        for (const input of inputs) {
           const graphId = input.graph_ids[input.graph_ids.length - 1];
+          if (newState.graphs.ops[graphId] === undefined) {
+            newState.graphs.ops[graphId] = {};
+          }
           newState.graphs.ops[graphId][input.op_name] = input;
         }
-        delete opInfoResponse.inputs;
       }
-      if (opInfoResponse.consumers) {
-        const outputSlots = Object.keys(opInfoResponse.consumers);
-        for (const outputSlot of outputSlots) {
-          for (const consumer of opInfoResponse.consumers[outputSlot]) {
+      if (consumers) {
+        for (let i = 0; i < consumers.length; ++i) {
+          for (const consumer of consumers[i]) {
             const graphId = consumer.graph_ids[consumer.graph_ids.length - 1];
+            if (newState.graphs.ops[graphId] === undefined) {
+              newState.graphs.ops[graphId] = {};
+            }
             newState.graphs.ops[graphId][consumer.op_name] = consumer;
           }
         }
-        delete opInfoResponse.consumers;
       }
-      const graphdId =
-        opInfoResponse.graph_ids[opInfoResponse.graph_ids.length - 1];
-      newState.graphs[graphdId] = opInfoResponse;
+      const graphdId = opInfo.graph_ids[opInfo.graph_ids.length - 1];
+      if (newState.graphs.ops[graphdId] === undefined) {
+        newState.graphs.ops[graphdId] = {};
+      }
+      newState.graphs.ops[graphdId][opInfo.op_name] = opInfo;
       return newState;
     }
   ), // TODO(cais): Add unit test.

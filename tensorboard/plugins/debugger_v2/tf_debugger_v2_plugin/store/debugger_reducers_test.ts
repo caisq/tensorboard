@@ -13,7 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import * as actions from '../actions';
-import {ExecutionDigestsResponse} from '../data_source/tfdbg2_data_source';
+import {
+  ExecutionDigestsResponse,
+  GraphOpInfoResponse,
+} from '../data_source/tfdbg2_data_source';
 import {reducers} from './debugger_reducers';
 import {
   DataLoadState,
@@ -26,12 +29,14 @@ import {
   createAlertsState,
   createDebuggerExecutionsState,
   createDebuggerGraphExecutionsState,
+  createDebuggerGraphsState,
   createDebuggerSourceCodeState,
   createDebuggerState,
   createDebuggerStateWithLoadedExecutionDigests,
   createDigestsStateWhileLoadingExecutionDigests,
   createTestExecutionData,
   createTestGraphExecution,
+  createTestGraphOpInfo,
   createTestStackFrame,
   createTestInfNanAlert,
 } from '../testing';
@@ -1493,5 +1498,191 @@ describe('Debugger reducers', () => {
         ).toThrowError(/.*scroll.*negative or non-integer/);
       });
     }
+  });
+
+  describe('graphOpInfoLoaded', () => {
+    it('updates self op, 1 input op and 1 consumer op', () => {
+      const opInfo0 = createTestGraphOpInfo();
+      const state = createDebuggerState({
+        graphs: createDebuggerGraphsState({
+          ops: {
+            g0: {[opInfo0.op_name]: opInfo0},
+          },
+        }),
+      });
+
+      const opInfo1 = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      delete opInfo1.consumer_names;
+      const opInfo2 = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      opInfo1.consumer_names = [[opInfo2.op_name]];
+      opInfo2.input_names = [opInfo1.op_name];
+      const opInfo3 = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      delete opInfo2.consumer_names;
+      delete opInfo3.consumer_names;
+      opInfo2.consumer_names = [[opInfo3.op_name]];
+      opInfo3.input_names = [opInfo2.op_name];
+      const opInfo2Response: GraphOpInfoResponse = {
+        ...opInfo2,
+        inputs: [opInfo1],
+        consumers: [[opInfo3]],
+      };
+      const nextState = reducers(
+        state,
+        actions.graphOpInfoLoaded({graphOpInfoResponse: opInfo2Response})
+      );
+
+      expect(nextState.graphs.ops).toEqual({
+        // Verify the old graph op data hasn't changed.
+        g0: {[opInfo0.op_name]: opInfo0},
+        // 'g2' is the immediately-enclosing graph of the three ops.
+        g2: {
+          [opInfo1.op_name]: opInfo1,
+          [opInfo2.op_name]: opInfo2,
+          [opInfo3.op_name]: opInfo3,
+        },
+      });
+    });
+
+    it('updates self op, 1 input op and 1 consumer op', () => {
+      const opInfo0 = createTestGraphOpInfo();
+      const state = createDebuggerState({
+        graphs: createDebuggerGraphsState({
+          ops: {
+            g0: {[opInfo0.op_name]: opInfo0},
+          },
+        }),
+      });
+
+      const opInfo1a = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      delete opInfo1a.consumer_names;
+      const opInfo1b = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      delete opInfo1b.consumer_names;
+      const opInfo2 = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      opInfo1a.consumer_names = [[opInfo2.op_name]];
+      opInfo1b.consumer_names = [[opInfo2.op_name]];
+      opInfo2.input_names = [opInfo1a.op_name, opInfo1b.op_name];
+      const opInfo3a = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      const opInfo3b = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      delete opInfo3a.consumer_names;
+      delete opInfo3b.consumer_names;
+      opInfo2.consumer_names = [[opInfo3a.op_name, opInfo3b.op_name]];
+      opInfo3a.input_names = [opInfo2.op_name];
+      opInfo3b.input_names = [opInfo2.op_name];
+      const opInfo2Response: GraphOpInfoResponse = {
+        ...opInfo2,
+        inputs: [opInfo1a, opInfo1b],
+        consumers: [[opInfo3a, opInfo3b]],
+      };
+      const nextState = reducers(
+        state,
+        actions.graphOpInfoLoaded({graphOpInfoResponse: opInfo2Response})
+      );
+
+      expect(nextState.graphs.ops).toEqual({
+        // Verify the old graph op data hasn't changed.
+        g0: {[opInfo0.op_name]: opInfo0},
+        // 'g2' is the immediately-enclosing graph of the three ops.
+        g2: {
+          [opInfo1a.op_name]: opInfo1a,
+          [opInfo1b.op_name]: opInfo1b,
+          [opInfo2.op_name]: opInfo2,
+          [opInfo3a.op_name]: opInfo3a,
+          [opInfo3b.op_name]: opInfo3b,
+        },
+      });
+    });
+
+    it('updates self op and input op: no consumer op', () => {
+      const opInfo0 = createTestGraphOpInfo();
+      const state = createDebuggerState({
+        graphs: createDebuggerGraphsState({
+          ops: {
+            g0: {[opInfo0.op_name]: opInfo0},
+          },
+        }),
+      });
+
+      const opInfo1 = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      delete opInfo1.consumer_names;
+      const opInfo2 = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+        consumer_names: [],
+      });
+      opInfo1.consumer_names = [[opInfo2.op_name]];
+      opInfo2.input_names = [opInfo1.op_name];
+      const opInfo2Response: GraphOpInfoResponse = {
+        ...opInfo2,
+        inputs: [opInfo1],
+        consumers: [],
+      };
+      const nextState = reducers(
+        state,
+        actions.graphOpInfoLoaded({graphOpInfoResponse: opInfo2Response})
+      );
+
+      expect(nextState.graphs.ops).toEqual({
+        g0: {[opInfo0.op_name]: opInfo0},
+        g2: {
+          [opInfo1.op_name]: opInfo1,
+          [opInfo2.op_name]: opInfo2,
+        },
+      });
+    });
+
+    it('updates self op and consumer ops: no input ops', () => {
+      const opInfo0 = createTestGraphOpInfo();
+      const state = createDebuggerState({
+        graphs: createDebuggerGraphsState({
+          ops: {
+            g0: {[opInfo0.op_name]: opInfo0},
+          },
+        }),
+      });
+
+      const opInfo1 = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+        input_names: null,
+      });
+      delete opInfo1.consumer_names;
+      const opInfo2 = createTestGraphOpInfo({
+        graph_ids: ['g1', 'g2'],
+      });
+      opInfo1.consumer_names = [[opInfo2.op_name]];
+      const opInfo1Response: GraphOpInfoResponse = {
+        ...opInfo1,
+        inputs: null,
+        consumers: [[opInfo2]],
+      };
+      const nextState = reducers(
+        state,
+        actions.graphOpInfoLoaded({graphOpInfoResponse: opInfo1Response})
+      );
+
+      expect(nextState.graphs.ops).toEqual({
+        g0: {[opInfo0.op_name]: opInfo0},
+        g2: {
+          [opInfo1.op_name]: opInfo1,
+          [opInfo2.op_name]: opInfo2,
+        },
+      });
+    });
   });
 });
