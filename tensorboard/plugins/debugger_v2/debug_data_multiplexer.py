@@ -493,14 +493,15 @@ class DebuggerV2EventMultiplexer(object):
             data_object["inputs"] = []
             for input_tensor_name in op_creation_digest.input_names:
                 input_op_name = tensor_name_to_op_name(input_tensor_name)
-                try:
-                    input_op_digest = graph.get_op_creation_digest(input_op_name)
-                    data_object["inputs"].append(
-                        self._opCreationDigestToDataObject(input_op_digest)
-                    )
-                except KeyError:
-                    print("Failed to find input op %s" % input_op_name)  # DEBUG
-                    print(list(graph._op_by_name.keys()))  # DEBUG
+                # try:
+                input_op_digest = graph.get_op_creation_digest(input_op_name)
+                data_object["inputs"].append(
+                    self._opCreationDigestToDataObject(input_op_digest)
+                )
+                # TODO(cais): Clean up.
+                # except KeyError:
+                #     print("Failed to find input op %s" % input_op_name)  # DEBUG
+                #     print(list(graph._op_by_name.keys()))  # DEBUG
         # Populate data about immediate consuming ops.
         data_object["consumers"] = collections.defaultdict(list)
         for src_slot, consumer_op_name, _ in graph.get_op_consumers(op_name):

@@ -57,9 +57,18 @@ tf-debugger-v2-stack-trace {
   width: 30%;
 }
 
-tf-debugger-v2-timeline {
+.top-center-section {
   display: inline-block;
   height: 100%;
   vertical-align: top;
   width: 55%;
+}
+
+tf-debugger-v2-timeline {
+  display: block;
+}
+
+tf-debugger-v2-graph {
+  display: block;
+  margin-top: 5px;
 }

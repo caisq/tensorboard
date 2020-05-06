@@ -26,6 +26,7 @@ import {
   ExecutionDigest,
   ExecutionDigestLoadState,
   GraphExecution,
+  GraphOpInfo,
   GraphOpInfoWithConsumerNames,
   LoadState,
   SourceFileContent,
@@ -258,6 +259,70 @@ export const getGraphExecutionFocusIndex = createSelector(
     return state.graphExecutions.focusIndex;
   }
 );
+
+export const getFocusedGraphOpInfo = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): GraphOpInfoWithConsumerNames | null => {
+    const {focusedOp, ops} = state.graphs;
+    if (focusedOp === null || ops[focusedOp.graphId] === undefined) {
+      // TODO(cais): Test coverage.
+      return null;
+    } else {
+      return ops[focusedOp.graphId][focusedOp.opName];
+    }
+  }
+); // TODO(cais): Add unit test.
+
+export const getFocusedGraphOpInputs = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): GraphOpInfo[] | null => {
+    const {focusedOp, ops} = state.graphs;
+    if (
+      focusedOp === null ||
+      ops[focusedOp.graphId] === undefined ||
+      ops[focusedOp.graphId][focusedOp.opName] === undefined
+    ) {
+      // TODO(cais): Test coverage.
+      return null;
+    } else {
+      const opInfo = ops[focusedOp.graphId][focusedOp.opName];
+      if (opInfo.input_names === null) {
+        // TODO(cais): Enforce array to simplify this code.
+        return null;
+      }
+      return opInfo.input_names.map(
+        // TODO(cais): Guard against undefined.
+        (inputTensorName) => {
+          const inputOpName =
+            inputTensorName.indexOf(':') === -1
+              ? inputTensorName
+              : inputTensorName.slice(0, inputTensorName.indexOf(':'));
+          return ops[focusedOp.graphId][inputOpName];
+        }
+      );
+    }
+  }
+); // TODO(cais): Add unit test.
+
+export const getFocusedGraphOpConsumers = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): GraphOpInfo[][] | null | undefined => {
+    const {focusedOp, ops} = state.graphs;
+    if (focusedOp === null) {
+      return null;
+    } else {
+      const opInfo = ops[focusedOp.graphId][focusedOp.opName];
+      if (opInfo.consumer_names === undefined) {
+        return undefined;
+      }
+      return opInfo.consumer_names.map((consumers) => {
+        return consumers.map(
+          (consumerOpName) => ops[focusedOp.graphId][consumerOpName]
+        );
+      });
+    }
+  }
+); // TODO(cais): Add unit test.
 
 /**
  * Get the focused alert types (if any) of the execution digests current being

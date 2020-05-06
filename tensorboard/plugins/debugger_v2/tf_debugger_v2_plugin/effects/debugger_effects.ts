@@ -691,10 +691,6 @@ export class DebuggerEffects {
         const {graph_id, op_name} = actionData;
         return this.dataSource.fetchGraphOpInfo(runId!, graph_id, op_name).pipe(
           map((graphOpInfoResponse) => {
-            console.log(
-              'graphOpInfoResponse:',
-              JSON.stringify(graphOpInfoResponse, null, 2)
-            ); // DEBUG
             this.store.dispatch(graphOpInfoLoaded({graphOpInfoResponse}));
             return graphOpInfoResponse.stack_frame_ids;
           })
@@ -716,9 +712,6 @@ export class DebuggerEffects {
         const missingStackFrameIds = stackFrameIds.filter(
           (stackFrameId) => loadedStackFrames[stackFrameId] === undefined
         );
-        console.log(
-          `${stackFrameIds.length} stack frames, ${missingStackFrameIds.length} missing`
-        ); // DEBUG
         return {runId, missingStackFrameIds};
       }),
       filter(({runId, missingStackFrameIds}) => {

@@ -85,6 +85,7 @@ export function createTestGraphOpInfo(
     device_name: '/GPU:0',
     input_names: [`ChainOp_${testOpCounter - 1}`],
     consumer_names: [[`ChainOp_${testOpCounter + 1}`]],
+    output_tensor_ids: [testOpCounter],
     graph_ids: ['g0', 'g1'],
     host_name: 'localhost',
     stack_frame_ids: ['a0', 'b1', 'c2'],
