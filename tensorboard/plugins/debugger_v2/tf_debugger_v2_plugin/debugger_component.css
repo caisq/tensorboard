@@ -32,10 +32,12 @@ limitations under the License.
 }
 
 tf-debugger-v2-alerts {
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
   display: inline-block;
   height: 100%;
+  margin-right: 10px;
   vertical-align: top;
-  width: 15%;
+  width: calc(15% - 11px);
 }
 
 tf-debugger-v2-graph-executions {
@@ -69,6 +71,7 @@ tf-debugger-v2-timeline {
 }
 
 tf-debugger-v2-graph {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
   display: block;
   margin-top: 5px;
 }

@@ -22,7 +22,7 @@ limitations under the License.
 
   <div class="graph-structure-container">
     <div
-      *ngIf="opInfo !== undefined && opInfo !== null"
+      *ngIf="opInfo !== undefined && opInfo !== null; else noOpFocused"
       class="op-container self-op-container"
     >
       <div class="op-type">
@@ -48,5 +48,12 @@ limitations under the License.
         </div>
       </div>
     </div>
+
+    <ng-template #noOpFocused>
+      <div class="no-op-focused">
+        No graph op selected. Click a row in Graph Executions table to view the
+        neighborhood of an op in its graph.
+      </div>
+    </ng-template>
   </div>
 </div>

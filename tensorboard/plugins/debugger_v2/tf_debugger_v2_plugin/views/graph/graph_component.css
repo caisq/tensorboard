@@ -17,6 +17,16 @@ limitations under the License.
   text-align: center;
 }
 
+.input-op-container {
+  display: inline-table;
+}
+
+.no-op-focused {
+  color: #808080;
+  font-family: 'Roboto', Arial, Helvetica, sans-serif;
+  font-size: 13px;
+}
+
 .op-container {
   border: 1px solid #c6cad1;
   border-radius: 3px;
@@ -24,8 +34,4 @@ limitations under the License.
   height: max-content;
   margin: 0 auto;
   width: 300px;
-}
-
-.input-op-container {
-  display: inline-table;
 }
