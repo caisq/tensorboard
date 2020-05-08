@@ -21,29 +21,38 @@ limitations under the License.
   </div>
 
   <div class="graph-structure-container">
-    <div
-      *ngIf="opInfo !== undefined && opInfo !== null; else noOpFocused"
-      class="op-container self-op-container"
-    >
-      <div class="op-type">
-        {{ opInfo.op_type }}
+    <div *ngIf="inputOps !== null" class="op-inputs-container">
+      <div>
+        Inputs:
       </div>
-      <div class="op-name">
-        {{ opInfo.op_name }}
+      <div>
+        <div *ngFor="let inputOpInfo of inputOps" class="input-ops-section">
+          <div
+            *ngIf="inputOpInfo !== undefined"
+            class="op-container input-op-container"
+          >
+            <div class="op-type">
+              {{ inputOpInfo.op_type }}
+            </div>
+            <div class="op-name">
+              {{ inputOpInfo.op_name }}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div *ngIf="inputOps !== null" class="op-inputs-container">
-      <div
-        *ngFor="let inputOpInfo of inputOps"
-        class="op-container input-op-container"
-      >
-        <div *ngIf="inputOpInfo !== undefined">
+    <div *ngIf="opInfo !== undefined && opInfo !== null; else noOpFocused">
+      <div>
+        Op:
+      </div>
+      <div class="op-container self-op-container">
+        <div>
           <div class="op-type">
-            {{ inputOpInfo.op_type }}
+            {{ opInfo.op_type }}
           </div>
           <div class="op-name">
-            {{ inputOpInfo.op_name }}
+            {{ opInfo.op_name }}
           </div>
         </div>
       </div>

@@ -14,11 +14,16 @@ limitations under the License.
 ==============================================================================*/
 
 .graph-structure-container {
-  text-align: center;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 10px;
 }
 
 .input-op-container {
-  display: inline-table;
+  display: inline-block;
+}
+
+.input-ops-section {
+  display: inline-block;
 }
 
 .no-op-focused {
@@ -29,9 +34,12 @@ limitations under the License.
 
 .op-container {
   border: 1px solid #c6cad1;
-  border-radius: 3px;
-  display: table;
-  height: max-content;
-  margin: 0 auto;
-  width: 300px;
+  border-radius: 4px;
+  margin: 0 5px;
+  padding: 2px 6px;
+  width: 280px;
+}
+
+.op-inputs-container {
+  margin-top: 15px;
 }
