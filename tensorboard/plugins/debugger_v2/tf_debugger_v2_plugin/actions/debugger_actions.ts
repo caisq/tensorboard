@@ -20,6 +20,7 @@ import {
   AlertsBreakdown,
   AlertType,
   DebuggerRunListing,
+  GraphOpInfo,
   SourceFileSpec,
   SourceLineSpec,
   StackFramesById,
@@ -28,7 +29,6 @@ import {
   ExecutionDigestsResponse,
   ExecutionDataResponse,
   GraphExecutionDataResponse,
-  GraphOpInfoResponse,
   SourceFileResponse,
 } from '../data_source/tfdbg2_data_source';
 
@@ -177,7 +177,7 @@ export const graphOpInfoRequested = createAction(
 
 export const graphOpInfoLoaded = createAction(
   '[Debugger] Graph Op Info Loaded',
-  props<{graphOpInfoResponse: GraphOpInfoResponse}>()
+  props<{graphOpInfoResponse: GraphOpInfo}>()
 );
 
 /**

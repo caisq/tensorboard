@@ -123,6 +123,18 @@ export interface GraphExecution extends GraphExecutionDigest {
   device_name: string;
 }
 
+export interface GraphOpInputSpec {
+  op_name: string;
+  output_slot: number;
+  data?: GraphOpInfo;
+}
+
+export interface GraphOpConsumerSpec {
+  op_name: string;
+  input_slot: number;
+  data?: GraphOpInfo;
+}
+
 /**
  * Information about an op in a graph.
  */
@@ -138,10 +150,8 @@ export interface GraphOpInfo {
   // IDs of the enclosing graphs for this op, from outermost to innermost.
   graph_ids: string[];
 
-  // Names of the immediate data input tensors to the op. `[]` if an op has
-  // no data inputs tensors. This field does not track control inputs.
-  // E.g., `["Dense_2/ReadVariableOp_1:0", "Dense_2/MatMul:0"]`
-  input_names: string[];
+  // Number of symoblic tensors output by the op.
+  num_outputs: number;
 
   // Debugger-generated IDs for the symbolic output tensor(s) of this op.
   // For an op without output tensors, this is an empty array.
@@ -152,20 +162,19 @@ export interface GraphOpInfo {
 
   // IDs of the frame of the stack trace at which the op is created.
   stack_frame_ids: string[];
-}
 
-/**
- * Same as `GraphOpInfo`, but with extension to include the names
- * of the immediate consuming ops.
- */
-export interface GraphOpInfoWithConsumerNames extends GraphOpInfo {
-  // Names of the ops that consumer the output tensors to the op,
-  // indexed by 0-based output-slot index. E.g., ['Dense_3/BiasAdd'].
-  // For an op without any output slots, this is an empty array.
-  // For an output slot without any consumers, the corresponding
-  // element is an empty array.
-  // This is for data edges only. Control edges are not tracked.
-  consumer_names?: string[][];
+  // Op names and slots of the immediate data input to the op.
+  //`[]` if an op has no data inputs tensors.
+  // This field does *not* track control inputs.
+  // E.g., `[{op_name: "Dense_2/ReadVariableOp_1:0", ouput_slot: 0},
+  //         {op_name: "Input:0", output_slot: 0}]`
+  inputs: GraphOpInputSpec[];
+
+  // Op names and slots of the immediate consumers of the op's output tenors.
+  // `[]` if the op provides no output tensors.
+  // If any of the output tensors of the op has no consumers, the corresponding
+  // element will be `[]`.
+  consumers: GraphOpConsumerSpec[][];
 }
 
 export enum AlertType {
@@ -378,7 +387,7 @@ export interface Graphs {
   // `graph_id` refers to the immediately-enclosing graph of the ops.
   ops: {
     [graphId: string]: {
-      [opName: string]: GraphOpInfoWithConsumerNames;
+      [opName: string]: GraphOpInfo;
     };
   };
 

@@ -25,8 +25,8 @@ import {
   Execution,
   Executions,
   GraphExecution,
-  GraphOpInfoWithConsumerNames,
   Graphs,
+  GraphOpInfo,
   ExecutionDigest,
   GraphExecutions,
   InfNanAlert,
@@ -77,18 +77,31 @@ export function createTestExecutionData(
 let testOpCounter = 0;
 
 export function createTestGraphOpInfo(
-  override?: Partial<GraphOpInfoWithConsumerNames>
-): GraphOpInfoWithConsumerNames {
+  override?: Partial<GraphOpInfo>
+): GraphOpInfo {
   return {
     op_type: 'ChainOp',
     op_name: `ChainOp_${testOpCounter++}`,
     device_name: '/GPU:0',
-    input_names: [`ChainOp_${testOpCounter - 1}`],
-    consumer_names: [[`ChainOp_${testOpCounter + 1}`]],
+    num_outputs: 1,
     output_tensor_ids: [testOpCounter],
     graph_ids: ['g0', 'g1'],
     host_name: 'localhost',
     stack_frame_ids: ['a0', 'b1', 'c2'],
+    inputs: [
+      {
+        op_name: `ChainOp_${testOpCounter - 1}`,
+        output_slot: 0,
+      },
+    ],
+    consumers: [
+      [
+        {
+          op_name: `ChainOp_${testOpCounter + 1}`,
+          input_slot: 0,
+        },
+      ],
+    ],
     ...override,
   };
 }

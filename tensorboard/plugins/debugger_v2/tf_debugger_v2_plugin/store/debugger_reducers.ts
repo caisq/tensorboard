@@ -20,7 +20,6 @@ import {
   ExecutionDigestsResponse,
   GraphExecutionDataResponse,
   SourceFileResponse,
-  GraphOpInfoResponse,
 } from '../data_source/tfdbg2_data_source';
 import {findFileIndex} from './debugger_store_utils';
 import {
@@ -31,10 +30,10 @@ import {
   Executions,
   Graphs,
   GraphExecutions,
+  GraphOpInfo,
   InfNanAlert,
   StackFramesById,
   SourceFileSpec,
-  GraphOpInfoWithConsumerNames,
 } from './debugger_types';
 
 // HACK: These imports are for type inference.
@@ -725,8 +724,9 @@ const reducer = createReducer(
   on(
     actions.graphOpInfoLoaded,
     (state: DebuggerState, data): DebuggerState => {
-      const opInfo: GraphOpInfoResponse = data.graphOpInfoResponse;
-      const {inputs, consumers} = opInfo;
+      const opInfo: GraphOpInfo = data.graphOpInfoResponse;
+      const {inputs, consumers, graph_ids} = opInfo;
+      const graphId = graph_ids[graph_ids.length - 1];
       const newState: DebuggerState = {
         ...state,
         graphs: {
@@ -739,34 +739,35 @@ const reducer = createReducer(
           },
         },
       };
-      if (inputs) {
-        for (const input of inputs) {
-          const graphId = input.graph_ids[input.graph_ids.length - 1];
+      for (const input of inputs) {
+        if (!input.data) {
+          continue;
+        }
+        if (newState.graphs.ops[graphId] === undefined) {
+          newState.graphs.ops[graphId] = {};
+        }
+        newState.graphs.ops[graphId][input.op_name] = input.data;
+        delete input.data;
+      }
+      for (let i = 0; i < consumers.length; ++i) {
+        for (const consumer of consumers[i]) {
+          if (!consumer.data) {
+            continue;
+          }
           if (newState.graphs.ops[graphId] === undefined) {
             newState.graphs.ops[graphId] = {};
           }
-          newState.graphs.ops[graphId][input.op_name] = input;
+          newState.graphs.ops[graphId][consumer.op_name] = consumer.data;
+          delete consumer.data;
         }
       }
-      if (consumers) {
-        for (let i = 0; i < consumers.length; ++i) {
-          for (const consumer of consumers[i]) {
-            const graphId = consumer.graph_ids[consumer.graph_ids.length - 1];
-            if (newState.graphs.ops[graphId] === undefined) {
-              newState.graphs.ops[graphId] = {};
-            }
-            newState.graphs.ops[graphId][consumer.op_name] = consumer;
-          }
-        }
+      if (newState.graphs.ops[graphId] === undefined) {
+        newState.graphs.ops[graphId] = {};
       }
-      const graphdId = opInfo.graph_ids[opInfo.graph_ids.length - 1];
-      if (newState.graphs.ops[graphdId] === undefined) {
-        newState.graphs.ops[graphdId] = {};
-      }
-      newState.graphs.ops[graphdId][opInfo.op_name] = opInfo;
+      newState.graphs.ops[graphId][opInfo.op_name] = opInfo;
       // Remove the loading marker for the op.
-      newState.graphs.loadingOps[graphdId].splice(
-        newState.graphs.loadingOps[graphdId].indexOf(opInfo.op_name),
+      newState.graphs.loadingOps[graphId].splice(
+        newState.graphs.loadingOps[graphId].indexOf(opInfo.op_name),
         1
       );
       return newState;

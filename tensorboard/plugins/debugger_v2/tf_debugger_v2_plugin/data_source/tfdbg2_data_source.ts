@@ -87,26 +87,6 @@ export interface GraphExecutionDataResponse {
 }
 
 /**
- * Respnos types related to graph ops.
- */
-
-export interface GraphOpInfoResponse extends GraphOpInfo {
-  // Information regarding ops that provide immediate input tensors to the op.
-  // `null` value is for ops without any input tensors.
-  // If not `null`, this array has the same length as `input_names`.
-  // This is for data edges only. Control edges are not tracked.
-  inputs?: GraphOpInfo[] | null;
-
-  // Information regarding ops that consumer the output tensors to the op,
-  // indexed by 0-based output-slot index.
-  // For an op without any output slots, this is an empty array.
-  // For an output slot without any consumers, the corresponding element
-  // is an empty array.
-  // This is for data edges only. Control edges are not tracked.
-  consumers?: GraphOpInfo[][];
-}
-
-/**
  * Response types related to alerts.
  */
 
@@ -179,7 +159,7 @@ export abstract class Tfdbg2DataSource {
     run: string,
     graph_id: string,
     op_name: string
-  ): Observable<GraphOpInfoResponse>;
+  ): Observable<GraphOpInfo>;
 
   /**
    * Fetch the list of source-code files that the debugged program involves.
@@ -311,16 +291,13 @@ export class Tfdbg2HttpServerDataSource implements Tfdbg2DataSource {
   }
 
   fetchGraphOpInfo(run: string, graph_id: string, op_name: string) {
-    return this.http.get<GraphOpInfoResponse>(
-      this.httpPathPrefix + '/graphs/op_info',
-      {
-        params: {
-          run,
-          graph_id,
-          op_name,
-        },
-      }
-    );
+    return this.http.get<GraphOpInfo>(this.httpPathPrefix + '/graphs/op_info', {
+      params: {
+        run,
+        graph_id,
+        op_name,
+      },
+    });
   }
 
   fetchSourceFileList(run: string): Observable<SourceFileListResponse> {

@@ -26,8 +26,9 @@ import {
   ExecutionDigest,
   ExecutionDigestLoadState,
   GraphExecution,
+  GraphOpConsumerSpec,
+  GraphOpInputSpec,
   GraphOpInfo,
-  GraphOpInfoWithConsumerNames,
   LoadState,
   SourceFileContent,
   SourceFileSpec,
@@ -262,7 +263,7 @@ export const getGraphExecutionFocusIndex = createSelector(
 
 export const getFocusedGraphOpInfo = createSelector(
   selectDebuggerState,
-  (state: DebuggerState): GraphOpInfoWithConsumerNames | null => {
+  (state: DebuggerState): GraphOpInfo | null => {
     const {focusedOp, ops} = state.graphs;
     if (focusedOp === null || ops[focusedOp.graphId] === undefined) {
       // TODO(cais): Test coverage.
@@ -275,7 +276,7 @@ export const getFocusedGraphOpInfo = createSelector(
 
 export const getFocusedGraphOpInputs = createSelector(
   selectDebuggerState,
-  (state: DebuggerState): GraphOpInfo[] | null => {
+  (state: DebuggerState): GraphOpInputSpec[] | null => {
     const {focusedOp, ops} = state.graphs;
     if (
       focusedOp === null ||
@@ -286,27 +287,14 @@ export const getFocusedGraphOpInputs = createSelector(
       return null;
     } else {
       const opInfo = ops[focusedOp.graphId][focusedOp.opName];
-      if (opInfo.input_names === null) {
-        // TODO(cais): Enforce array to simplify this code.
-        return null;
-      }
-      return opInfo.input_names.map(
-        // TODO(cais): Guard against undefined.
-        (inputTensorName) => {
-          const inputOpName =
-            inputTensorName.indexOf(':') === -1
-              ? inputTensorName
-              : inputTensorName.slice(0, inputTensorName.indexOf(':'));
-          return ops[focusedOp.graphId][inputOpName];
-        }
-      );
+      return opInfo.inputs;
     }
   }
 ); // TODO(cais): Add unit test.
 
 export const getFocusedGraphOpConsumers = createSelector(
   selectDebuggerState,
-  (state: DebuggerState): GraphOpInfo[][] | null | undefined => {
+  (state: DebuggerState): GraphOpConsumerSpec[][] | null => {
     const {focusedOp, ops} = state.graphs;
     if (
       focusedOp === null ||
@@ -316,19 +304,7 @@ export const getFocusedGraphOpConsumers = createSelector(
       return null;
     } else {
       const opInfo = ops[focusedOp.graphId][focusedOp.opName];
-      console.log('opInfo: mapping names:', opInfo); // DEBUG
-      if (opInfo.consumer_names === undefined) {
-        return undefined;
-      }
-      console.log(
-        'getFocusedGraphOpConsumers: mapping names:',
-        opInfo.consumer_names
-      ); // DEBUG
-      return opInfo.consumer_names.map((consumers) => {
-        return consumers.map(
-          (consumerOpName) => ops[focusedOp.graphId][consumerOpName]
-        );
-      });
+      return opInfo.consumers;
     }
   }
 ); // TODO(cais): Add unit test.
@@ -410,8 +386,7 @@ export const getGraphOps = createSelector(
   selectDebuggerState,
   (
     state: DebuggerState
-  ): {[graph_id: string]: {[op_name: string]: GraphOpInfoWithConsumerNames}} =>
-    state.graphs.ops
+  ): {[graph_id: string]: {[op_name: string]: GraphOpInfo}} => state.graphs.ops
 ); // TODO(cais): Add unit test.
 
 export const getLoadedStackFrames = createSelector(
