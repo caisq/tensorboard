@@ -15,7 +15,11 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {select, Store} from '@ngrx/store';
 
-import {getFocusedGraphOpInfo, getFocusedGraphOpInputs} from '../../store';
+import {
+  getFocusedGraphOpConsumers,
+  getFocusedGraphOpInfo,
+  getFocusedGraphOpInputs,
+} from '../../store';
 import {State} from '../../store/debugger_types';
 
 /** @typehack */ import * as _typeHackRxjs from 'rxjs';
@@ -26,6 +30,7 @@ import {State} from '../../store/debugger_types';
     <graph-component
       [opInfo]="opInfo$ | async"
       [inputOps]="inputOps$ | async"
+      [consumerOps]="consumerOps$ | async"
     ></graph-component>
   `,
 })
@@ -33,6 +38,8 @@ export class GraphContainer {
   readonly opInfo$ = this.store.pipe(select(getFocusedGraphOpInfo));
 
   readonly inputOps$ = this.store.pipe(select(getFocusedGraphOpInputs));
+
+  readonly consumerOps$ = this.store.pipe(select(getFocusedGraphOpConsumers));
 
   constructor(private readonly store: Store<State>) {}
 }

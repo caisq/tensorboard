@@ -498,10 +498,6 @@ class DebuggerV2EventMultiplexer(object):
                 data_object["inputs"].append(
                     self._opCreationDigestToDataObject(input_op_digest)
                 )
-                # TODO(cais): Clean up.
-                # except KeyError:
-                #     print("Failed to find input op %s" % input_op_name)  # DEBUG
-                #     print(list(graph._op_by_name.keys()))  # DEBUG
         # Populate data about immediate consuming ops.
         data_object["consumers"] = collections.defaultdict(list)
         for src_slot, consumer_op_name, _ in graph.get_op_consumers(op_name):

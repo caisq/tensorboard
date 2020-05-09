@@ -308,13 +308,22 @@ export const getFocusedGraphOpConsumers = createSelector(
   selectDebuggerState,
   (state: DebuggerState): GraphOpInfo[][] | null | undefined => {
     const {focusedOp, ops} = state.graphs;
-    if (focusedOp === null) {
+    if (
+      focusedOp === null ||
+      ops[focusedOp.graphId] === undefined ||
+      ops[focusedOp.graphId][focusedOp.opName] === undefined
+    ) {
       return null;
     } else {
       const opInfo = ops[focusedOp.graphId][focusedOp.opName];
+      console.log('opInfo: mapping names:', opInfo); // DEBUG
       if (opInfo.consumer_names === undefined) {
         return undefined;
       }
+      console.log(
+        'getFocusedGraphOpConsumers: mapping names:',
+        opInfo.consumer_names
+      ); // DEBUG
       return opInfo.consumer_names.map((consumers) => {
         return consumers.map(
           (consumerOpName) => ops[focusedOp.graphId][consumerOpName]

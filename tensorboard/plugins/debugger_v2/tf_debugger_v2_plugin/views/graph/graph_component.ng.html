@@ -21,48 +21,76 @@ limitations under the License.
   </div>
 
   <div class="graph-structure-container">
-    <div *ngIf="inputOps !== null" class="op-inputs-container">
-      <div>
-        Inputs:
-      </div>
-      <div>
-        <div *ngFor="let inputOpInfo of inputOps" class="input-ops-section">
-          <div
-            *ngIf="inputOpInfo !== undefined"
-            class="op-container input-op-container"
-          >
-            <div class="op-type">
-              {{ inputOpInfo.op_type }}
-            </div>
-            <div class="op-name">
-              {{ inputOpInfo.op_name }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div *ngIf="opInfo !== undefined && opInfo !== null; else noOpFocused">
-      <div>
-        Op:
-      </div>
-      <div class="op-container self-op-container">
+      <div *ngIf="inputOps !== null" class="op-inputs-container">
         <div>
-          <div class="op-type">
-            {{ opInfo.op_type }}
+          Inputs:
+        </div>
+        <div>
+          <div *ngFor="let inputOpInfo of inputOps" class="input-ops-section">
+            <div
+              *ngIf="inputOpInfo !== undefined"
+              class="op-container input-op-container"
+            >
+              <div class="op-name">
+                {{ inputOpInfo.op_name }}
+              </div>
+              <div class="op-type">
+                ({{ inputOpInfo.op_type }})
+              </div>
+            </div>
           </div>
-          <div class="op-name">
-            {{ opInfo.op_name }}
+        </div>
+      </div>
+
+      <div>
+        <div>
+          Op:
+        </div>
+        <div class="op-container self-op-container">
+          <div>
+            <div class="op-name">
+              {{ opInfo.op_name }}
+            </div>
+            <div class="op-type">
+              ({{ opInfo.op_type }})
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="consumerOps !== null" class="op-consumers-container">
+        <div>
+          Consumers:
+        </div>
+        <div>
+          <div *ngFor="let slotConsumers of consumerOps">
+            <div
+              *ngFor="let consumerOpInfo of slotConsumers"
+              class="input-ops-section"
+            >
+              <div
+                *ngIf="consumerOpInfo !== undefined"
+                class="op-container input-op-container"
+              >
+                <div class="op-name">
+                  {{ consumerOpInfo.op_name }}
+                </div>
+                <div class="op-type">
+                  ({{ consumerOpInfo.op_type }})
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
-    <ng-template #noOpFocused>
-      <div class="no-op-focused">
-        No graph op selected. Click a row in Graph Executions table to view the
-        neighborhood of an op in its graph.
-      </div>
-    </ng-template>
   </div>
+
+  <ng-template #noOpFocused>
+    <div class="no-op-focused">
+      No graph op selected. Click a row in Graph Executions table to view the
+      neighborhood of an op in its graph.
+    </div>
+  </ng-template>
 </div>

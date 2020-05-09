@@ -43,3 +43,14 @@ limitations under the License.
 .op-inputs-container {
   margin-top: 15px;
 }
+
+.op-name {
+  display: inline-block;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.op-type {
+  display: inline-block;
+  margin-left: 5px;
+}

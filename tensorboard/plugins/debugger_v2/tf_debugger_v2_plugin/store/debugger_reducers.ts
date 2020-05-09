@@ -20,6 +20,7 @@ import {
   ExecutionDigestsResponse,
   GraphExecutionDataResponse,
   SourceFileResponse,
+  GraphOpInfoResponse,
 } from '../data_source/tfdbg2_data_source';
 import {findFileIndex} from './debugger_store_utils';
 import {
@@ -33,6 +34,7 @@ import {
   InfNanAlert,
   StackFramesById,
   SourceFileSpec,
+  GraphOpInfoWithConsumerNames,
 } from './debugger_types';
 
 // HACK: These imports are for type inference.
@@ -723,10 +725,8 @@ const reducer = createReducer(
   on(
     actions.graphOpInfoLoaded,
     (state: DebuggerState, data): DebuggerState => {
-      const opInfo = data.graphOpInfoResponse;
+      const opInfo: GraphOpInfoResponse = data.graphOpInfoResponse;
       const {inputs, consumers} = opInfo;
-      delete opInfo.inputs;
-      delete opInfo.consumers;
       const newState: DebuggerState = {
         ...state,
         graphs: {
