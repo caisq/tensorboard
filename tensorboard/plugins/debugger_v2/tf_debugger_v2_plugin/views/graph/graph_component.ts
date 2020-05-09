@@ -35,6 +35,4 @@ export class GraphComponent {
 
   @Input()
   consumerOps!: GraphOpInfo[][] | null;
-
-  // TODO(cais): Add consumerOps.
 } // TODO(cais): Add unit tests.

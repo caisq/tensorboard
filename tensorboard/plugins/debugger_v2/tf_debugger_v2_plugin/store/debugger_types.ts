@@ -138,10 +138,10 @@ export interface GraphOpInfo {
   // IDs of the enclosing graphs for this op, from outermost to innermost.
   graph_ids: string[];
 
-  // Names of the immediate data input tensors to the op, `null` if an op has
+  // Names of the immediate data input tensors to the op. `[]` if an op has
   // no data inputs tensors. This field does not track control inputs.
   // E.g., `["Dense_2/ReadVariableOp_1:0", "Dense_2/MatMul:0"]`
-  input_names: string[] | null;
+  input_names: string[];
 
   // Debugger-generated IDs for the symbolic output tensor(s) of this op.
   // For an op without output tensors, this is an empty array.

@@ -107,7 +107,7 @@ describe('plugins_component', () => {
       declarations: [PluginsContainer, PluginsComponent],
       imports: [TestingDebuggerModule, ExtraDashboardModule],
     }).compileComponents();
-    store = TestBed.get(Store);
+    store = TestBed.inject<Store<State>>(Store) as MockStore<State>;
     store.overrideSelector(getPlugins, PLUGINS);
     store.overrideSelector(getActivePlugin, null);
     store.overrideSelector(getPluginsListLoaded, {
@@ -337,6 +337,49 @@ describe('plugins_component', () => {
       fixture.detectChanges();
 
       expect(barReloadSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('warning pages', () => {
+    it('shows warning when no plugin is active after list is loaded', () => {
+      const fixture = TestBed.createComponent(PluginsContainer);
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.no-plugin'))).toBeNull();
+
+      store.overrideSelector(getActivePlugin, null);
+      store.overrideSelector(getPluginsListLoaded, {
+        state: DataLoadState.LOADED,
+        lastLoadedTimeInMs: 123,
+      });
+      store.refreshState();
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.no-plugin'))).not.toBeNull();
+    });
+
+    it('shows warning when the plugins listing failed to load', () => {
+      store.overrideSelector(getActivePlugin, null);
+      store.overrideSelector(getPluginsListLoaded, {
+        state: DataLoadState.FAILED,
+        lastLoadedTimeInMs: null,
+      });
+      const fixture = TestBed.createComponent(PluginsContainer);
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.no-plugin'))).not.toBeNull();
+    });
+
+    it('does not show warning when data is not yet loaded', () => {
+      store.overrideSelector(getActivePlugin, null);
+      store.overrideSelector(getPluginsListLoaded, {
+        state: DataLoadState.LOADING,
+        lastLoadedTimeInMs: 123,
+      });
+      const fixture = TestBed.createComponent(PluginsContainer);
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.no-plugin'))).toBeNull();
     });
   });
 });

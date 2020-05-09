@@ -52,7 +52,7 @@ limitations under the License.
   direction: rtl;
   font-family: 'Roboto Mono', monospace;
   font-size: 10px;
-  display: block;
+  tensorboard/plugins/debugger_v2/tf_debugger_v2_plugin/views/graph/builddisplay: block;
   height: 14px;
   line-height: 14px;
   padding: 1px 3px;

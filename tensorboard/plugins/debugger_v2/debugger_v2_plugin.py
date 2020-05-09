@@ -65,6 +65,7 @@ class DebuggerV2Plugin(base_plugin.TBPlugin):
             "/execution/data": self.serve_execution_data,
             "/graph_execution/digests": self.serve_graph_execution_digests,
             "/graph_execution/data": self.serve_graph_execution_data,
+            "/graphs/graph_info": self.serve_graph_info,
             "/graphs/op_info": self.serve_graph_op_info,
             "/source_files/list": self.serve_source_files_list,
             "/source_files/file": self.serve_source_file,
@@ -244,6 +245,50 @@ class DebuggerV2Plugin(base_plugin.TBPlugin):
             return _error_response(request, str(e))
 
     @wrappers.Request.application
+    def serve_graph_info(self, request):
+        """Serve basic information about a TensorFlow graph.
+
+        The request specifies the debugger-generated ID of the graph being
+        queried.
+
+        The response contains a JSON object with the following fields:
+          - graph_id: The debugger-generated ID (echoing the request).
+          - name: The name of the graph (if any). For TensorFlow 2.x
+            Function Graphs (FuncGraphs), this is typically the name of
+            the underlying Python function, optionally prefixed with
+            TensorFlow-generated prefixed such as "__inference_".
+            Some graphs (e.g., certain outermost graphs) may have no names,
+            in which case this field is `null`.
+          - outer_graph_id: Outer graph ID (if any). For an outermost graph
+            without an outer graph context, this field is `null`.
+          - inner_graph_ids: Debugger-generated IDs of all the graphs
+            nested inside this graph. For a graph without any graphs nested
+            inside, this field is an empty array.
+        """
+        experiment = plugin_util.experiment_id(request.environ)
+        run = request.args.get("run")
+        if run is None:
+            return _missing_run_error_response(request)
+        graph_id = request.args.get("graph_id")
+        run_tag_filter = debug_data_provider.graph_info_run_tag_filter(
+            run, graph_id
+        )
+        blob_sequences = self._data_provider.read_blob_sequences(
+            experiment, self.plugin_name, run_tag_filter=run_tag_filter
+        )
+        tag = next(iter(run_tag_filter.tags))
+        try:
+            return http_util.Respond(
+                request,
+                self._data_provider.read_blob(
+                    blob_sequences[run][tag][0].blob_key
+                ),
+                "application/json",
+            )
+        except errors.NotFoundError as e:
+            return _error_response(request, str(e))
+
+    @wrappers.Request.application
     def serve_graph_op_info(self, request):
         """Serve information for ops in graphs.
 
@@ -254,19 +299,49 @@ class DebuggerV2Plugin(base_plugin.TBPlugin):
           - op_type
           - op_name
           - graph_ids: Stack of graph IDs that the op is located in, from
-            outermost to innermost.
-          - input_names: Input tensor names. This is `None` for ops without
-            inputs.
+            outermost to innermost. The length of this array is always >= 1.
+            The length is 1 if and only if the graph is an outermost graph.
           - num_outputs: Number of output tensors.
+          - output_tensor_ids: The debugger-generated number IDs for the
+            symbolic output tensors of the op (an array of numbers).
           - host_name: Name of the host on which the op is created.
-          - stack_trace: Stack frames of the op's creation in.
-          - inputs: A recursive data object of all the input ops
-            to this op. Currently only immediate (one level of) inputs
-            are provided. This is `None` for ops without inputs.
-          - consumers: A recursive data object of all the ops that
-            consume the output tensors of the op. Currently only
-            immediate (one level of) consumers are provided. This is
-            an empty list for ops with no consumers.
+          - stack_trace: Stack frames of the op's creation.
+          - inputs: Specifications of all inputs to this op.
+            Currently only immediate (one level of) inputs are provided.
+            This is an array of length N_in, where N_in is the number of
+            data inputs received by the op. Each element of the array is an
+            object with the following fields:
+              - op_name: Name of the op that provides the input tensor.
+              - output_slot: 0-based output slot index from which the input
+                tensor emits.
+              - data: A recursive data structure of this same schema.
+                This field is not populated (undefined) at the leaf nodes
+                of this recursive data structure.
+                In the rare case wherein the data for an input cannot be
+                retrieved properly (e.g., special internal op types), this
+                field will be unpopulated.
+            This is an empty list for an op with no inputs.
+          - consumers: Specifications for all the downstream consuming ops of
+            this. Currently only immediate (one level of) consumers are provided.
+            This is an array of length N_out, where N_out is the number of
+            symbolic tensors output by this op.
+            Each element of the array is an array of which the length equals
+            the number of downstream ops that consume the corresponding symbolic
+            tensor (only data edges are tracked).
+            Each element of the array is an object with the following fields:
+              - op_name: Name of the op that receives the output tensor as an
+                input.
+              - input_slot: 0-based input slot index at which the downstream
+                op receives this output tensor.
+              - data: A recursive data structure of this very schema.
+                This field is not populated (undefined) at the leaf nodes
+                of this recursive data structure.
+                In the rare case wherein the data for a consumer op cannot be
+                retrieved properly (e.g., special internal op types), this
+                field will be unpopulated.
+            If this op has no output tensors, this is an empty array.
+            If one of the output tensors of this op has no consumers, the
+            corresponding element is an empty array.
         """
         experiment = plugin_util.experiment_id(request.environ)
         run = request.args.get("run")
