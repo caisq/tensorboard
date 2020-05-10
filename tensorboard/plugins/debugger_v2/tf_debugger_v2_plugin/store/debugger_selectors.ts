@@ -19,6 +19,7 @@ import {
   AlertsBreakdown,
   AlertsByIndex,
   AlertType,
+  DataLoadState,
   DEBUGGER_FEATURE_KEY,
   DebuggerRunListing,
   DebuggerState,
@@ -36,7 +37,6 @@ import {
   StackFrame,
   StackFramesById,
   State,
-  DataLoadState,
 } from './debugger_types';
 
 // HACK: These imports are for type inference.

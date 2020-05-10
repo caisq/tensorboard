@@ -170,7 +170,7 @@ export interface GraphOpInfo {
 }
 
 /**
- * Specificaton of the input tensor to a graph op.
+ * Specificaton of an input tensor to a graph op.
  */
 export interface GraphOpInputSpec {
   // Name of the graph op that provides the input tensor.
@@ -188,7 +188,7 @@ export interface GraphOpInputSpec {
 }
 
 /**
- * Specificaton of the op consuming an graph op's output tensor.
+ * Specificaton of an op consuming an graph op's output tensor.
  */
 export interface GraphOpConsumerSpec {
   // Name of the graph op that consumes the output tensor.

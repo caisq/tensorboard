@@ -670,7 +670,7 @@ export class DebuggerEffects {
       ofType(graphOpFocused),
       withLatestFrom(
         this.store.select(getActiveRunId),
-        this.store.select(getLoadingGraphOps),
+        this.store.select(getLoadingGraphOps)
       ),
       filter(([actionData, runId, loadingOps]) => {
         const {graph_id, op_name} = actionData;
