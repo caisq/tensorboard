@@ -153,7 +153,7 @@ export abstract class Tfdbg2DataSource {
    * @param graph_id The debugger-generated ID of the op that contains the op.
    *   This is assumed to be the ID of the immediately-enclosing graph, i.e.,
    *   not an outer graph context for the immediately-enclosing graph.
-   * @param op_name Name of the op being queries (e.g., "Dense_2/MatMul").
+   * @param op_name Name of the op being queried (e.g., "Dense_2/MatMul").
    */
   abstract fetchGraphOpInfo(
     run: string,
