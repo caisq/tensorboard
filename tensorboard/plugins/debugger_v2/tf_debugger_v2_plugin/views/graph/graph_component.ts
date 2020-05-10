@@ -15,7 +15,11 @@ limitations under the License.
 
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 
-import {GraphOpInfo} from '../../store/debugger_types';
+import {
+  GraphOpConsumerSpec,
+  GraphOpInfo,
+  GraphOpInputSpec,
+} from '../../store/debugger_types';
 
 @Component({
   selector: 'graph-component',
@@ -28,8 +32,8 @@ export class GraphComponent {
   opInfo!: GraphOpInfo;
 
   @Input()
-  inputOps!: GraphOpInfo[];
+  inputOps!: GraphOpInputSpec[];
 
   @Input()
-  consumerOps!: GraphOpInfo[][];
+  consumerOps!: GraphOpConsumerSpec[][];
 } // TODO(cais): Add unit tests.

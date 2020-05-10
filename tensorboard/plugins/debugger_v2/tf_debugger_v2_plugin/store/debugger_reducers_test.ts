@@ -1522,6 +1522,39 @@ describe('Debugger reducers', () => {
     }
   });
 
+  describe('graphOpFocused', () => {
+    it('sets focusedOp in graphs state from empty state', () => {
+      const state = createDebuggerState();
+      const nextState = reducers(
+        state,
+        actions.graphOpFocused({graph_id: 'g2', op_name: 'TestOp_12'})
+      );
+      expect(nextState.graphs.focusedOp).toEqual({
+        graphId: 'g2',
+        opName: 'TestOp_12',
+      });
+    });
+
+    it('sets focusedOp in graphs state from non-empty state', () => {
+      const state = createDebuggerState({
+        graphs: createDebuggerGraphsState({
+          focusedOp: {
+            graphId: 'g1',
+            opName: 'TestOp_1',
+          },
+        }),
+      });
+      const nextState = reducers(
+        state,
+        actions.graphOpFocused({graph_id: 'g2', op_name: 'TestOp_12'})
+      );
+      expect(nextState.graphs.focusedOp).toEqual({
+        graphId: 'g2',
+        opName: 'TestOp_12',
+      });
+    });
+  });
+
   describe('graphOpInfoRequested', () => {
     it('creates key for new graph_id', () => {
       const state = createDebuggerState();

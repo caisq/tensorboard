@@ -123,20 +123,12 @@ export interface GraphExecution extends GraphExecutionDigest {
   device_name: string;
 }
 
-export interface GraphOpInputSpec {
-  op_name: string;
-  output_slot: number;
-  data?: GraphOpInfo;
-}
-
-export interface GraphOpConsumerSpec {
-  op_name: string;
-  input_slot: number;
-  data?: GraphOpInfo;
-}
-
 /**
  * Information about an op in a graph.
+ *
+ * Including its enclosing graph, relation with other ops in the graph
+ * (inputs and consumers), and the source-code location (stack trace)
+ * at which the op was created.
  */
 export interface GraphOpInfo {
   // Op type (e.g., "MatMul").
@@ -175,6 +167,42 @@ export interface GraphOpInfo {
   // If any of the output tensors of the op has no consumers, the corresponding
   // element will be `[]`.
   consumers: GraphOpConsumerSpec[][];
+}
+
+/**
+ * Specificaton of the input tensor to a graph op.
+ */
+export interface GraphOpInputSpec {
+  // Name of the graph op that provides the input tensor.
+  op_name: string;
+
+  // 0-based output slot index at which the op provides the input tensor.
+  output_slot: number;
+
+  // Optional recursive information about the input-providing op.
+  // This is not populated in two cases:
+  //   1. At the leaf nodes of this recursive data structure.
+  //   2. When the information is not available (e.g., backend lookup
+  //      failure related to special internal ops not tracked by the debugger).
+  data?: GraphOpInfo;
+}
+
+/**
+ * Specificaton of the op consuming an graph op's output tensor.
+ */
+export interface GraphOpConsumerSpec {
+  // Name of the graph op that consumes the output tensor.
+  op_name: string;
+
+  // 0-based input slot index at which the op consumes the output tensor.
+  input_slot: number;
+
+  // Optional recursive information about the output-consuming op.
+  // This is not populated in two cases:
+  //   1. At the leaf nodes of this recursive data structure.
+  //   2. When the information is not available (e.g., backend lookup
+  //      failure related to special internal ops not tracked by the debugger).
+  data?: GraphOpInfo;
 }
 
 export enum AlertType {

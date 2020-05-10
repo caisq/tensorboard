@@ -695,7 +695,7 @@ const reducer = createReducer(
         },
       };
     }
-  ), // TODO(cais): Add unit test.
+  ),
   on(
     actions.graphOpInfoRequested,
     (

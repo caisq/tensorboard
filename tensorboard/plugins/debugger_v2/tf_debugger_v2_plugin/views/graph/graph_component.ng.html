@@ -29,14 +29,14 @@ limitations under the License.
         <div>
           <div *ngFor="let inputOpInfo of inputOps" class="input-ops-section">
             <div
-              *ngIf="inputOpInfo !== undefined"
+              *ngIf="inputOpInfo.data !== undefined"
               class="op-container input-op-container"
             >
               <div class="op-name">
                 {{ inputOpInfo.op_name }}
               </div>
               <div class="op-type">
-                ({{ inputOpInfo.op_type }})
+                ({{ inputOpInfo.data.op_type }})
               </div>
             </div>
           </div>
@@ -70,14 +70,14 @@ limitations under the License.
               class="input-ops-section"
             >
               <div
-                *ngIf="consumerOpInfo !== undefined"
+                *ngIf="consumerOpInfo.data !== undefined"
                 class="op-container input-op-container"
               >
                 <div class="op-name">
                   {{ consumerOpInfo.op_name }}
                 </div>
                 <div class="op-type">
-                  ({{ consumerOpInfo.op_type }})
+                  ({{ consumerOpInfo.data.op_type }})
                 </div>
               </div>
             </div>

@@ -266,13 +266,12 @@ export const getFocusedGraphOpInfo = createSelector(
   (state: DebuggerState): GraphOpInfo | null => {
     const {focusedOp, ops} = state.graphs;
     if (focusedOp === null || ops[focusedOp.graphId] === undefined) {
-      // TODO(cais): Test coverage.
       return null;
     } else {
-      return ops[focusedOp.graphId][focusedOp.opName];
+      return ops[focusedOp.graphId][focusedOp.opName] || null;
     }
   }
-); // TODO(cais): Add unit test.
+);
 
 export const getFocusedGraphOpInputs = createSelector(
   selectDebuggerState,
@@ -286,11 +285,20 @@ export const getFocusedGraphOpInputs = createSelector(
       // TODO(cais): Test coverage.
       return null;
     } else {
-      const opInfo = ops[focusedOp.graphId][focusedOp.opName];
-      return opInfo.inputs;
+      const graph = ops[focusedOp.graphId];
+      const {inputs} = graph[focusedOp.opName];
+      return inputs.map((inputSpec) => {
+        const spec: GraphOpInputSpec = {
+          ...inputSpec,
+        };
+        if (graph[inputSpec.op_name]) {
+          spec.data = graph[inputSpec.op_name];
+        }
+        return spec;
+      });
     }
   }
-); // TODO(cais): Add unit test.
+);
 
 export const getFocusedGraphOpConsumers = createSelector(
   selectDebuggerState,
@@ -303,11 +311,20 @@ export const getFocusedGraphOpConsumers = createSelector(
     ) {
       return null;
     } else {
-      const opInfo = ops[focusedOp.graphId][focusedOp.opName];
-      return opInfo.consumers;
+      const graph = ops[focusedOp.graphId];
+      const {consumers} = graph[focusedOp.opName];
+      return consumers.map((slotConsumers) => {
+        return slotConsumers.map((consumerSpec) => {
+          const spec: GraphOpConsumerSpec = {...consumerSpec};
+          if (graph[consumerSpec.op_name]) {
+            spec.data = graph[consumerSpec.op_name];
+          }
+          return spec;
+        });
+      });
     }
   }
-); // TODO(cais): Add unit test.
+);
 
 /**
  * Get the focused alert types (if any) of the execution digests current being
@@ -380,7 +397,7 @@ export const getLoadingGraphOps = createSelector(
   selectDebuggerState,
   (state: DebuggerState): {[graph_id: string]: string[]} =>
     state.graphs.loadingOps
-); // TODO(cais): Add unit test.
+);
 
 export const getGraphOps = createSelector(
   selectDebuggerState,
