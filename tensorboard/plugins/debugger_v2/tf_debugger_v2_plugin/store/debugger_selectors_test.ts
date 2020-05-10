@@ -1230,43 +1230,17 @@ describe('debugger selectors', () => {
         createDebuggerState({
           graphs: createDebuggerGraphsState({
             loadingOps: {
-              g0: [],
-              g1: ['Op1'],
-              g2: ['Op2a', 'Op2b'],
+              g0: {},
+              g1: {Op1: DataLoadState.LOADING},
+              g2: {Op2a: DataLoadState.LOADED, Op2b: DataLoadState.FAILED},
             },
           }),
         })
       );
       expect(getLoadingGraphOps(state)).toEqual({
-        g0: [],
-        g1: ['Op1'],
-        g2: ['Op2a', 'Op2b'],
-      });
-    });
-  });
-
-  describe('getGraphOps', () => {
-    it('returns initial empty state', () => {
-      const state = createState(createDebuggerState());
-      expect(getLoadingGraphOps(state)).toEqual({});
-    });
-
-    it('returns non-empty state', () => {
-      const state = createState(
-        createDebuggerState({
-          graphs: createDebuggerGraphsState({
-            loadingOps: {
-              g0: [],
-              g1: ['Op1'],
-              g2: ['Op2a', 'Op2b'],
-            },
-          }),
-        })
-      );
-      expect(getLoadingGraphOps(state)).toEqual({
-        g0: [],
-        g1: ['Op1'],
-        g2: ['Op2a', 'Op2b'],
+        g0: {},
+        g1: {Op1: DataLoadState.LOADING},
+        g2: {Op2a: DataLoadState.LOADED, Op2b: DataLoadState.FAILED},
       });
     });
   });

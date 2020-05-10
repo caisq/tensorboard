@@ -73,7 +73,6 @@ import {
   getGraphExecutionPageSize,
   getGraphExecutionScrollBeginIndex,
   getGraphExecutionDataLoadingPages,
-  getGraphOps,
   getNumExecutions,
   getNumExecutionsLoaded,
   getLoadedAlertsOfFocusedType,
@@ -672,16 +671,14 @@ export class DebuggerEffects {
       withLatestFrom(
         this.store.select(getActiveRunId),
         this.store.select(getLoadingGraphOps),
-        this.store.select(getGraphOps)
       ),
-      filter(([actionData, runId, loadingOps, graphOps]) => {
+      filter(([actionData, runId, loadingOps]) => {
         const {graph_id, op_name} = actionData;
         return (
           runId !== null &&
           (loadingOps[graph_id] === undefined ||
-            loadingOps[graph_id].indexOf(op_name) === -1) &&
-          (graphOps[graph_id] === undefined ||
-            graphOps[graph_id][op_name] === undefined)
+            loadingOps[graph_id][op_name] === undefined ||
+            loadingOps[graph_id][op_name] === DataLoadState.FAILED)
         );
       }),
       tap(([actionData]) =>

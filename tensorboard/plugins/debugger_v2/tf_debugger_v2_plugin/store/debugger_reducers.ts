@@ -713,10 +713,10 @@ const reducer = createReducer(
         },
       };
       if (newState.graphs.loadingOps[graph_id] === undefined) {
-        newState.graphs.loadingOps[graph_id] = [];
+        newState.graphs.loadingOps[graph_id] = {};
       }
-      if (newState.graphs.loadingOps[graph_id].indexOf(op_name) === -1) {
-        newState.graphs.loadingOps[graph_id].push(op_name);
+      if (newState.graphs.loadingOps[graph_id][op_name] === undefined) {
+        newState.graphs.loadingOps[graph_id][op_name] = DataLoadState.LOADING;
       }
       return newState;
     }
@@ -766,10 +766,8 @@ const reducer = createReducer(
       }
       newState.graphs.ops[graphId][opInfo.op_name] = opInfo;
       // Remove the loading marker for the op.
-      newState.graphs.loadingOps[graphId].splice(
-        newState.graphs.loadingOps[graphId].indexOf(opInfo.op_name),
-        1
-      );
+      newState.graphs.loadingOps[graphId][opInfo.op_name] =
+        DataLoadState.LOADED;
       return newState;
     }
   ),

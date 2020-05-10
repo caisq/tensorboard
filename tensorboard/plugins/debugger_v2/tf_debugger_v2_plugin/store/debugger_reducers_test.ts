@@ -1563,7 +1563,7 @@ describe('Debugger reducers', () => {
         actions.graphOpInfoRequested({graph_id: 'g8', op_name: 'x'})
       );
       expect(nextState.graphs.loadingOps).toEqual({
-        g8: ['x'],
+        g8: {x: DataLoadState.LOADING},
       });
     });
 
@@ -1571,8 +1571,8 @@ describe('Debugger reducers', () => {
       const state = createDebuggerState({
         graphs: createDebuggerGraphsState({
           loadingOps: {
-            g1: ['Op1'],
-            g2: ['Op2'],
+            g1: {Op1: DataLoadState.LOADING},
+            g2: {Op2: DataLoadState.LOADING},
           },
         }),
       });
@@ -1581,8 +1581,11 @@ describe('Debugger reducers', () => {
         actions.graphOpInfoRequested({graph_id: 'g2', op_name: 'Op3'})
       );
       expect(nextState.graphs.loadingOps).toEqual({
-        g1: ['Op1'],
-        g2: ['Op2', 'Op3'],
+        g1: {Op1: DataLoadState.LOADING},
+        g2: {
+          Op2: DataLoadState.LOADING,
+          Op3: DataLoadState.LOADING,
+        },
       });
     });
 
@@ -1590,8 +1593,8 @@ describe('Debugger reducers', () => {
       const state = createDebuggerState({
         graphs: createDebuggerGraphsState({
           loadingOps: {
-            g1: ['Op1'],
-            g2: ['Op2'],
+            g1: {Op1: DataLoadState.LOADING},
+            g2: {Op2: DataLoadState.LOADING},
           },
         }),
       });
@@ -1600,8 +1603,8 @@ describe('Debugger reducers', () => {
         actions.graphOpInfoRequested({graph_id: 'g2', op_name: 'Op2'})
       );
       expect(nextState.graphs.loadingOps).toEqual({
-        g1: ['Op1'],
-        g2: ['Op2'],
+        g1: {Op1: DataLoadState.LOADING},
+        g2: {Op2: DataLoadState.LOADING},
       });
     });
   });
@@ -1615,7 +1618,7 @@ describe('Debugger reducers', () => {
             g0: {[opInfo0.op_name]: opInfo0},
           },
           loadingOps: {
-            g2: ['TestOp_1'],
+            g2: {TestOp_1: DataLoadState.LOADING},
           },
         }),
       });
@@ -1692,7 +1695,7 @@ describe('Debugger reducers', () => {
         },
       });
       expect(nextState.graphs.loadingOps).toEqual({
-        g2: [],
+        g2: {TestOp_1: DataLoadState.LOADED},
       });
     });
 
@@ -1704,8 +1707,11 @@ describe('Debugger reducers', () => {
             g0: {[opInfo0.op_name]: opInfo0},
           },
           loadingOps: {
-            g1: ['TestOp_11'],
-            g2: ['TestOp_2', 'TestOp_22'],
+            g1: {TestOp_11: DataLoadState.LOADING},
+            g2: {
+              TestOp_2: DataLoadState.LOADING,
+              TestOp_22: DataLoadState.LOADING,
+            },
           },
         }),
       });
@@ -1820,8 +1826,11 @@ describe('Debugger reducers', () => {
         },
       });
       expect(nextState.graphs.loadingOps).toEqual({
-        g1: ['TestOp_11'],
-        g2: ['TestOp_22'],
+        g1: {TestOp_11: DataLoadState.LOADING},
+        g2: {
+          TestOp_2: DataLoadState.LOADED,
+          TestOp_22: DataLoadState.LOADING,
+        },
       });
     });
 
@@ -1833,7 +1842,7 @@ describe('Debugger reducers', () => {
             g0: {[opInfo0.op_name]: opInfo0}, // Pre-existing op in store.
           },
           loadingOps: {
-            g2: ['TestOp_3'],
+            g2: {TestOp_3: DataLoadState.LOADING},
           },
         }),
       });
@@ -1883,7 +1892,7 @@ describe('Debugger reducers', () => {
         },
       });
       expect(nextState.graphs.loadingOps).toEqual({
-        g2: [],
+        g2: {TestOp_3: DataLoadState.LOADED},
       });
     });
 
@@ -1895,7 +1904,7 @@ describe('Debugger reducers', () => {
             g0: {[opInfo0.op_name]: opInfo0}, // Pre-existing op in store.
           },
           loadingOps: {
-            g2: ['TestOp_4'],
+            g2: {TestOp_4: DataLoadState.LOADING},
           },
         }),
       });
@@ -1947,7 +1956,7 @@ describe('Debugger reducers', () => {
         },
       });
       expect(nextState.graphs.loadingOps).toEqual({
-        g2: [],
+        g2: {TestOp_4: DataLoadState.LOADED},
       });
     });
   });

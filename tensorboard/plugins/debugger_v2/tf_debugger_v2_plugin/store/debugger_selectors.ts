@@ -36,6 +36,7 @@ import {
   StackFrame,
   StackFramesById,
   State,
+  DataLoadState,
 } from './debugger_types';
 
 // HACK: These imports are for type inference.
@@ -395,16 +396,11 @@ export const getLoadedExecutionData = createSelector(
 
 export const getLoadingGraphOps = createSelector(
   selectDebuggerState,
-  (state: DebuggerState): {[graph_id: string]: string[]} =>
-    state.graphs.loadingOps
-);
-
-export const getGraphOps = createSelector(
-  selectDebuggerState,
   (
     state: DebuggerState
-  ): {[graph_id: string]: {[op_name: string]: GraphOpInfo}} => state.graphs.ops
-); // TODO(cais): Add unit test.
+  ): {[graph_id: string]: {[op_name: string]: DataLoadState}} =>
+    state.graphs.loadingOps
+);
 
 export const getLoadedStackFrames = createSelector(
   selectDebuggerState,
