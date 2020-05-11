@@ -148,7 +148,7 @@ export abstract class Tfdbg2DataSource {
   ): Observable<GraphExecutionDataResponse>;
 
   /**
-   * Fetch the information regarding an op in a graph.
+   * Fetch the information regarding an op in a TensorFlow graph.
    * @param run Name of the run that the op belongs to.
    * @param graph_id The debugger-generated ID of the op that contains the op.
    *   This is assumed to be the ID of the immediately-enclosing graph, i.e.,
