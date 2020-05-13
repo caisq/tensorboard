@@ -13,17 +13,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+:host {
+  overflow: scroll;
+}
+
 .graph-structure-container {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .input-op-container {
   display: inline-block;
 }
 
+.input-op-output-slot {
+  display: inline-block;
+}
+
 .input-ops-section {
   display: inline-block;
+}
+
+.input-op-name {
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: underline;
+  white-space: pre-wrap;
+}
+
+.input-tensor-name {
+  display: block;
 }
 
 .no-op-focused {
@@ -35,22 +53,45 @@ limitations under the License.
 .op-container {
   border: 1px solid #c6cad1;
   border-radius: 4px;
-  margin: 0 5px;
+  cursor: pointer;
+  margin: 0 5px 0 0;
   padding: 2px 6px;
-  width: 280px;
+  text-align: right;
+  width: 200px;
 }
 
 .op-inputs-container {
-  margin-top: 15px;
+  border-bottom: 1px solid rgb(0, 0, 0, 0.12);
+  margin-top: 5px;
+  padding-bottom: 5px;
 }
 
 .op-name {
-  display: inline-block;
-  font-weight: bold;
+  cursor: pointer;
+  display: block;
   text-decoration: underline;
+  white-space: pre-wrap;
 }
 
 .op-type {
-  display: inline-block;
-  margin-left: 5px;
+  background-color: #e3e5e8;
+  border: 1px solid #c0c0c0;
+  border-radius: 4px;
+  display: inline-flex;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 10px;
+  height: 14px;
+  line-height: 14px;
+  margin-top: 3px;
+  padding: 1px 3px;
+  width: max-content;
+}
+
+.self-op-container {
+  border-bottom: 1px solid rgb(0, 0, 0, 0.12);
+  padding-bottom: 5px;
+}
+
+.self-op-name {
+  font-weight: bold;
 }

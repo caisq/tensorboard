@@ -22,68 +22,95 @@ limitations under the License.
 
   <div class="graph-structure-container">
     <div *ngIf="opInfo !== undefined && opInfo !== null; else noOpFocused">
-      <div *ngIf="inputOps !== null" class="op-inputs-container">
+      <div
+        *ngIf="inputOps.length > 0; else noInputs"
+        class="op-inputs-container"
+      >
         <div>
-          Inputs:
-        </div>
-        <div>
-          <div *ngFor="let inputOpInfo of inputOps" class="input-ops-section">
+          <div
+            *ngFor="let inputOpInfo of inputOps; let slot = index"
+            class="input-ops-section"
+          >
+            <div>
+              Input slot {{ slot }}
+            </div>
             <div
               *ngIf="inputOpInfo.data !== undefined"
               class="op-container input-op-container"
             >
-              <div class="op-name">
-                {{ inputOpInfo.op_name }}
+              <div class="input-tensor-name">
+                <div class="input-op-name">
+                  {{ inputOpInfo.op_name }}
+                </div>
+                <div class="input-op-output-slot">
+                  : {{ inputOpInfo.output_slot }}
+                </div>
               </div>
               <div class="op-type">
-                ({{ inputOpInfo.data.op_type }})
+                {{ inputOpInfo.data.op_type }}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div>
+      <ng-template #noInputs>
+        <div class="op-inputs-container">
+          (This op has no data input tensor.)
+        </div>
+      </ng-template>
+
+      <div class="self-op-container">
         <div>
           Op:
         </div>
-        <div class="op-container self-op-container">
+        <div class="op-container ">
           <div>
-            <div class="op-name">
+            <div class="op-name self-op-name">
               {{ opInfo.op_name }}
             </div>
             <div class="op-type">
-              ({{ opInfo.op_type }})
+              {{ opInfo.op_type }}
             </div>
           </div>
         </div>
       </div>
 
-      <div *ngIf="consumerOps !== null" class="op-consumers-container">
+      <div
+        *ngIf="totalNumConsumers > 0; else noConsumers"
+        class="op-consumers-container"
+      >
         <div>
-          Consumers:
-        </div>
-        <div>
-          <div *ngFor="let slotConsumers of consumerOps">
+          <div *ngFor="let slotConsumers of consumerOps; let slot = index">
             <div
               *ngFor="let consumerOpInfo of slotConsumers"
               class="input-ops-section"
             >
+              <div>
+                Consumer of output slot {{ slot }}
+              </div>
               <div
                 *ngIf="consumerOpInfo.data !== undefined"
-                class="op-container input-op-container"
+                class="op-container consumer-op-container"
               >
                 <div class="op-name">
                   {{ consumerOpInfo.op_name }}
                 </div>
                 <div class="op-type">
-                  ({{ consumerOpInfo.data.op_type }})
+                  {{ consumerOpInfo.data.op_type }}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <ng-template #noConsumers>
+        <div class="op-consumers-container">
+          (This op has {{ totalNumConsumers }} output tensors and no data
+          consumer.)
+        </div>
+      </ng-template>
     </div>
   </div>
 

@@ -36,4 +36,13 @@ export class GraphComponent {
 
   @Input()
   consumerOps!: GraphOpConsumerSpec[][];
+
+  /**
+   * Total number of consumers of all output tensors of the op.
+   */
+  get totalNumConsumers() {
+    return this.consumerOps.reduce((count, slotConsumers) => {
+      return count + slotConsumers.length;
+    }, 0);
+  }
 } // TODO(cais): Add unit tests.
