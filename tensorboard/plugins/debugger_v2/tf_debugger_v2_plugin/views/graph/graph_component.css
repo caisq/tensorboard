@@ -36,8 +36,8 @@ limitations under the License.
 .input-op-name {
   cursor: pointer;
   display: inline-block;
+  overflow-wrap: anywhere;
   text-decoration: underline;
-  white-space: pre-wrap;
 }
 
 .input-tensor-name {
@@ -69,8 +69,8 @@ limitations under the License.
 .op-name {
   cursor: pointer;
   display: block;
+  overflow-wrap: anywhere;
   text-decoration: underline;
-  white-space: pre-wrap;
 }
 
 .op-type {

@@ -32,7 +32,7 @@ limitations under the License.
             class="input-ops-section"
           >
             <div>
-              Input slot {{ slot }}
+              Input slot {{slot}}
             </div>
             <div
               *ngIf="inputOpInfo.data !== undefined"
@@ -40,14 +40,14 @@ limitations under the License.
             >
               <div class="input-tensor-name">
                 <div class="input-op-name">
-                  {{ inputOpInfo.op_name }}
+                  {{inputOpInfo.op_name}}
                 </div>
                 <div class="input-op-output-slot">
-                  : {{ inputOpInfo.output_slot }}
+                  :{{inputOpInfo.output_slot}}
                 </div>
               </div>
               <div class="op-type">
-                {{ inputOpInfo.data.op_type }}
+                {{inputOpInfo.data.op_type}}
               </div>
             </div>
           </div>
@@ -67,10 +67,10 @@ limitations under the License.
         <div class="op-container ">
           <div>
             <div class="op-name self-op-name">
-              {{ opInfo.op_name }}
+              {{opInfo.op_name}}
             </div>
             <div class="op-type">
-              {{ opInfo.op_type }}
+              {{opInfo.op_type}}
             </div>
           </div>
         </div>
@@ -87,17 +87,17 @@ limitations under the License.
               class="input-ops-section"
             >
               <div>
-                Consumer of output slot {{ slot }}
+                Consumer of output slot {{slot}}
               </div>
               <div
                 *ngIf="consumerOpInfo.data !== undefined"
                 class="op-container consumer-op-container"
               >
                 <div class="op-name">
-                  {{ consumerOpInfo.op_name }}
+                  {{consumerOpInfo.op_name}}
                 </div>
                 <div class="op-type">
-                  {{ consumerOpInfo.data.op_type }}
+                  {{consumerOpInfo.data.op_type}}
                 </div>
               </div>
             </div>
@@ -107,7 +107,7 @@ limitations under the License.
 
       <ng-template #noConsumers>
         <div class="op-consumers-container">
-          (This op has {{ totalNumConsumers }} output tensors and no data
+          (This op has {{totalNumConsumers}} output tensors and no data
           consumer.)
         </div>
       </ng-template>
