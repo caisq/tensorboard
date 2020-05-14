@@ -14,13 +14,18 @@ limitations under the License.
 ==============================================================================*/
 
 :host {
-  overflow: scroll;
+  max-height: inherit;
+  overflow-y: auto;
 }
 
 .consumers-container {
   padding-bottom: 5px;
   overflow-x: auto;
   white-space: nowrap;
+}
+
+.consumer-input-slot {
+  color: #707070;
 }
 
 .consumer-section {
@@ -30,13 +35,15 @@ limitations under the License.
 
 .graph-structure-container {
   font-size: 12px;
+  overflow-y: auto;
+  white-space: nowrap;
 }
 
 .inputs-container {
   border-bottom: 1px solid rgb(0, 0, 0, 0.12);
   margin-top: 5px;
-  padding-bottom: 5px;
   overflow-x: auto;
+  padding-bottom: 0;
   white-space: nowrap;
 }
 
@@ -53,6 +60,7 @@ limitations under the License.
   border-right: 1px solid rgb(0, 0, 0, 0.12);
   display: inline-block;
   margin-right: 5px;
+  padding-bottom: 5px;
 }
 
 .input-op-name {

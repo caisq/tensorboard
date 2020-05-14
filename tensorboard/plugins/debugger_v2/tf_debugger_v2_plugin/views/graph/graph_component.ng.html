@@ -83,12 +83,12 @@ limitations under the License.
             class="slot-consumers-container"
           >
             <div>
-              of output slot {{slot}}: {{slotConsumers.length}}
+              Output slot {{slot}}: ({{slotConsumers.length}}
               <span *ngIf="slotConsumers.length === 1; else pluralConsumers">
-                consumer
+                consumer)
               </span>
               <ng-template #pluralConsumers>
-                consumer(s)
+                consumers)
               </ng-template>
             </div>
 
@@ -102,6 +102,9 @@ limitations under the License.
               >
                 <div class="op-name">
                   {{consumerOpInfo.op_name}}
+                </div>
+                <div class="consumer-input-slot">
+                  Input slot: {{consumerOpInfo.input_slot}}
                 </div>
                 <div class="op-type">
                   {{consumerOpInfo.data.op_type}}
