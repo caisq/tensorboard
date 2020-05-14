@@ -34,14 +34,14 @@ limitations under the License.
             <div
               *ngIf="inputOpInfo.data !== undefined"
               class="op-container input-op-container"
-              (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: inputOpInfo.op_name})"
             >
               <div class="input-tensor-name">
-                <div class="input-op-name">
-                  {{inputOpInfo.op_name}}
-                </div>
-                <div class="input-op-output-slot">
-                  :{{inputOpInfo.output_slot}}
+                <div
+                  class="op-name input-op-name"
+                  (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: inputOpInfo.op_name})"
+                >{{inputOpInfo.op_name}}</div>
+                <div class="input-op-output-slot slot">
+                  Output slot: {{inputOpInfo.output_slot}}
                 </div>
               </div>
               <div class="op-type">
@@ -53,7 +53,7 @@ limitations under the License.
       </div>
 
       <ng-template #noInputs>
-        <div class="op-inputs-container">
+        <div class="inputs-container">
           (This op has no data input tensor.)
         </div>
       </ng-template>
@@ -64,12 +64,8 @@ limitations under the License.
         </div>
         <div class="op-container ">
           <div>
-            <div class="op-name self-op-name">
-              {{opInfo.op_name}}
-            </div>
-            <div class="op-type">
-              {{opInfo.op_type}}
-            </div>
+            <div class="op-name self-op-name">{{opInfo.op_name}}</div>
+            <div class="op-type">{{opInfo.op_type}}</div>
           </div>
         </div>
       </div>
@@ -96,16 +92,16 @@ limitations under the License.
             <div
               *ngFor="let consumerOpInfo of slotConsumers"
               class="consumer-section"
-              (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: consumerOpInfo.op_name})"
             >
               <div
                 *ngIf="consumerOpInfo.data !== undefined"
                 class="op-container consumer-op-container"
               >
-                <div class="op-name">
-                  {{consumerOpInfo.op_name}}
-                </div>
-                <div class="consumer-input-slot">
+                <div
+                  class="op-name"
+                  (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: consumerOpInfo.op_name})"
+                >{{consumerOpInfo.op_name}}</div>
+                <div class="slot">
                   Input slot: {{consumerOpInfo.input_slot}}
                 </div>
                 <div class="op-type">
