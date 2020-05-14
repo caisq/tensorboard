@@ -13,7 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+} from '@angular/core';
 
 import {
   GraphOpConsumerSpec,
@@ -36,6 +42,16 @@ export class GraphComponent {
 
   @Input()
   consumerOps!: GraphOpConsumerSpec[][];
+
+  @Output()
+  onGraphOpNavigate = new EventEmitter<{graph_id: string; op_name: string}>();
+
+  /**
+   * Get the ID of the immeidately-enclosing graph of the op.
+   */
+  get graphId() {
+    return this.opInfo.graph_ids[this.opInfo.graph_ids.length - 1];
+  }
 
   /**
    * Total number of consumers of all output tensors of the op.

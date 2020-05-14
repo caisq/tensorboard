@@ -15,6 +15,7 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {select, Store} from '@ngrx/store';
 
+import {graphOpFocused} from '../../actions';
 import {
   getFocusedGraphOpConsumers,
   getFocusedGraphOpInfo,
@@ -31,6 +32,7 @@ import {State} from '../../store/debugger_types';
       [opInfo]="opInfo$ | async"
       [inputOps]="inputOps$ | async"
       [consumerOps]="consumerOps$ | async"
+      (onGraphOpNavigate)="onGraphOpNavigate($event)"
     ></graph-component>
   `,
 })
@@ -40,6 +42,11 @@ export class GraphContainer {
   readonly inputOps$ = this.store.pipe(select(getFocusedGraphOpInputs));
 
   readonly consumerOps$ = this.store.pipe(select(getFocusedGraphOpConsumers));
+
+  onGraphOpNavigate(event: {graph_id: string; op_name: string}) {
+    console.log('onGraphOpNavigate(): event=', event); // DEBUG
+    this.store.dispatch(graphOpFocused(event));
+  }
 
   constructor(private readonly store: Store<State>) {}
 }

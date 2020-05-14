@@ -34,6 +34,7 @@ limitations under the License.
             <div
               *ngIf="inputOpInfo.data !== undefined"
               class="op-container input-op-container"
+              (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: inputOpInfo.op_name})"
             >
               <div class="input-tensor-name">
                 <div class="input-op-name">
@@ -95,6 +96,7 @@ limitations under the License.
             <div
               *ngFor="let consumerOpInfo of slotConsumers"
               class="consumer-section"
+              (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: consumerOpInfo.op_name})"
             >
               <div
                 *ngIf="consumerOpInfo.data !== undefined"
