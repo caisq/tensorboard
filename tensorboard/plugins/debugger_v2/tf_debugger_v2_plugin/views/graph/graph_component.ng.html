@@ -22,17 +22,14 @@ limitations under the License.
 
   <div class="graph-structure-container">
     <div *ngIf="opInfo !== undefined && opInfo !== null; else noOpFocused">
-      <div
-        *ngIf="inputOps.length > 0; else noInputs"
-        class="op-inputs-container"
-      >
+      <div *ngIf="inputOps.length > 0; else noInputs" class="inputs-container">
         <div>
           <div
             *ngFor="let inputOpInfo of inputOps; let slot = index"
             class="input-ops-section"
           >
-            <div>
-              Input slot {{slot}}
+            <div class="input-slot-header">
+              Input slot {{slot}}:
             </div>
             <div
               *ngIf="inputOpInfo.data !== undefined"
@@ -61,7 +58,7 @@ limitations under the License.
       </ng-template>
 
       <div class="self-op-container">
-        <div>
+        <div class="self-op-header">
           Op:
         </div>
         <div class="op-container ">
@@ -78,17 +75,27 @@ limitations under the License.
 
       <div
         *ngIf="totalNumConsumers > 0; else noConsumers"
-        class="op-consumers-container"
+        class="consumers-container"
       >
         <div>
-          <div *ngFor="let slotConsumers of consumerOps; let slot = index">
+          <div
+            *ngFor="let slotConsumers of consumerOps; let slot = index"
+            class="slot-consumers-container"
+          >
+            <div>
+              of output slot {{slot}}: {{slotConsumers.length}}
+              <span *ngIf="slotConsumers.length === 1; else pluralConsumers">
+                consumer
+              </span>
+              <ng-template #pluralConsumers>
+                consumer(s)
+              </ng-template>
+            </div>
+
             <div
               *ngFor="let consumerOpInfo of slotConsumers"
-              class="input-ops-section"
+              class="consumer-section"
             >
-              <div>
-                Consumer of output slot {{slot}}
-              </div>
               <div
                 *ngIf="consumerOpInfo.data !== undefined"
                 class="op-container consumer-op-container"

@@ -17,12 +17,32 @@ limitations under the License.
   overflow: scroll;
 }
 
+.consumers-container {
+  padding-bottom: 5px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.consumer-section {
+  display: block;
+  margin: 5px 0;
+}
+
 .graph-structure-container {
   font-size: 12px;
 }
 
+.inputs-container {
+  border-bottom: 1px solid rgb(0, 0, 0, 0.12);
+  margin-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
 .input-op-container {
   display: inline-block;
+  padding-top: 5px;
 }
 
 .input-op-output-slot {
@@ -30,7 +50,9 @@ limitations under the License.
 }
 
 .input-ops-section {
+  border-right: 1px solid rgb(0, 0, 0, 0.12);
   display: inline-block;
+  margin-right: 5px;
 }
 
 .input-op-name {
@@ -38,6 +60,10 @@ limitations under the License.
   display: inline-block;
   overflow-wrap: anywhere;
   text-decoration: underline;
+}
+
+.input-slot-header {
+  margin-bottom: 5px;
 }
 
 .input-tensor-name {
@@ -58,12 +84,6 @@ limitations under the License.
   padding: 2px 6px;
   text-align: right;
   width: 200px;
-}
-
-.op-inputs-container {
-  border-bottom: 1px solid rgb(0, 0, 0, 0.12);
-  margin-top: 5px;
-  padding-bottom: 5px;
 }
 
 .op-name {
@@ -87,6 +107,11 @@ limitations under the License.
   width: max-content;
 }
 
+.self-op-header {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
 .self-op-container {
   border-bottom: 1px solid rgb(0, 0, 0, 0.12);
   padding-bottom: 5px;
@@ -94,4 +119,13 @@ limitations under the License.
 
 .self-op-name {
   font-weight: bold;
+}
+
+.slot-consumers-container {
+  border-right: 1px solid rgb(0, 0, 0, 0.12);
+  display: inline-block;
+  height: 100%;
+  margin-right: 5px;
+  padding-top: 5px;
+  vertical-align: top;
 }
