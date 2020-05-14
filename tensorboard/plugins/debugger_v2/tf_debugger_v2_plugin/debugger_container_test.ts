@@ -37,10 +37,7 @@ import {
   AlertType,
   TensorDebugMode,
 } from './store/debugger_types';
-import {
-  getFocusedExecutionStackFrames,
-  getFocusedSourceLineSpec,
-} from './store';
+import {getFocusedStackFrames, getFocusedSourceLineSpec} from './store';
 import {
   createAlertsState,
   createDebuggerState,
@@ -570,7 +567,7 @@ describe('Debugger Container', () => {
       const stackFrame0 = createTestStackFrame();
       const stackFrame1 = createTestStackFrame();
       const stackFrame2 = createTestStackFrame();
-      store.overrideSelector(getFocusedExecutionStackFrames, [
+      store.overrideSelector(getFocusedStackFrames, [
         stackFrame0,
         stackFrame1,
         stackFrame2,
@@ -648,7 +645,7 @@ describe('Debugger Container', () => {
       const stackFrame0 = createTestStackFrame();
       const stackFrame1 = createTestStackFrame();
       const stackFrame2 = createTestStackFrame();
-      store.overrideSelector(getFocusedExecutionStackFrames, [
+      store.overrideSelector(getFocusedStackFrames, [
         stackFrame0,
         stackFrame1,
         stackFrame2,
@@ -665,7 +662,7 @@ describe('Debugger Container', () => {
 
     it('Shows loading state when stack-trace data is unavailable', () => {
       const fixture = TestBed.createComponent(StackTraceContainer);
-      store.overrideSelector(getFocusedExecutionStackFrames, []);
+      store.overrideSelector(getFocusedStackFrames, []);
       fixture.detectChanges();
 
       const stackFrameContainers = fixture.debugElement.queryAll(
@@ -679,7 +676,7 @@ describe('Debugger Container', () => {
       const stackFrame0 = createTestStackFrame();
       const stackFrame1 = createTestStackFrame();
       const stackFrame2 = createTestStackFrame();
-      store.overrideSelector(getFocusedExecutionStackFrames, [
+      store.overrideSelector(getFocusedStackFrames, [
         stackFrame0,
         stackFrame1,
         stackFrame2,

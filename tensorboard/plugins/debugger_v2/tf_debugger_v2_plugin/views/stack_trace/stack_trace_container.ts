@@ -18,10 +18,7 @@ import {createSelector, select, Store} from '@ngrx/store';
 import {State} from '../../store/debugger_types';
 
 import {sourceLineFocused} from '../../actions';
-import {
-  getFocusedExecutionStackFrames,
-  getFocusedSourceLineSpec,
-} from '../../store';
+import {getFocusedStackFrames, getFocusedSourceLineSpec} from '../../store';
 import {StackFrameForDisplay} from './stack_trace_component';
 
 /** @typehack */ import * as _typeHackRxjs from 'rxjs';
@@ -39,7 +36,7 @@ export class StackTraceContainer {
   readonly stackFramesForDisplay$ = this.store.pipe(
     select(
       createSelector(
-        getFocusedExecutionStackFrames,
+        getFocusedStackFrames,
         getFocusedSourceLineSpec,
         (stackFrames, focusedSourceLineSpec) => {
           if (stackFrames === null) {

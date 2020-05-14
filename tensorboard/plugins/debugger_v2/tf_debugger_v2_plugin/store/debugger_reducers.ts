@@ -122,6 +122,7 @@ const initialState: DebuggerState = {
   graphExecutions: createInitialGraphExecutionsState(),
   graphs: createInitialGraphsState(),
   stackFrames: {},
+  stackTraceFocusType: null,
   sourceCode: {
     sourceFileListLoaded: {
       state: DataLoadState.NOT_LOADED,
@@ -528,6 +529,7 @@ const reducer = createReducer(
           ...state.executions,
           focusIndex: state.executions.scrollBeginIndex + action.displayIndex,
         },
+        stackTraceFocusType: 'execution',
       };
     }
   ),
@@ -693,6 +695,7 @@ const reducer = createReducer(
             opName: data.op_name,
           },
         },
+        stackTraceFocusType: 'graph_op', // TODO(cais): Add unit test.
       };
     }
   ),

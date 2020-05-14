@@ -19,7 +19,7 @@ import {
   getAlertsLoaded,
   getFocusedExecutionData,
   getFocusedExecutionIndex,
-  getFocusedExecutionStackFrames,
+  getFocusedStackFrames,
   getFocusedGraphOpConsumers,
   getFocusedGraphOpInfo,
   getFocusedGraphOpInputs,
@@ -427,7 +427,9 @@ describe('debugger selectors', () => {
     });
   });
 
-  describe('getFocusedExecutionStackFrames', () => {
+  describe('getFocusedStackFrames', () => {
+    // TODO(cais): Add unit test for graph_op focus type.
+
     it('returns correct stack frames when there is no focus', () => {
       const state = createState(
         createDebuggerState({
@@ -452,7 +454,7 @@ describe('debugger selectors', () => {
           },
         })
       );
-      expect(getFocusedExecutionStackFrames(state)).toBe(null);
+      expect(getFocusedStackFrames(state)).toBe(null);
     });
 
     it('returns correct stack frames when there is no focus', () => {
@@ -500,12 +502,10 @@ describe('debugger selectors', () => {
             a2: stackFrame2,
             a3: stackFrame3,
           },
+          stackTraceFocusType: 'execution',
         })
       );
-      expect(getFocusedExecutionStackFrames(state)).toEqual([
-        stackFrame1,
-        stackFrame3,
-      ]);
+      expect(getFocusedStackFrames(state)).toEqual([stackFrame1, stackFrame3]);
     });
 
     it('returns null when subset of frames is missing', () => {
@@ -540,7 +540,7 @@ describe('debugger selectors', () => {
           },
         })
       );
-      expect(getFocusedExecutionStackFrames(state)).toBeNull();
+      expect(getFocusedStackFrames(state)).toBeNull();
     });
   });
 

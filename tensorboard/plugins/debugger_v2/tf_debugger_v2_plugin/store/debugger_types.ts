@@ -508,6 +508,8 @@ export interface DebuggerState {
   // stack-frame IDs.
   stackFrames: StackFramesById;
 
+  stackTraceFocusType: 'execution' | 'graph_op' | null;
+
   sourceCode: SourceCodeState;
 }
 

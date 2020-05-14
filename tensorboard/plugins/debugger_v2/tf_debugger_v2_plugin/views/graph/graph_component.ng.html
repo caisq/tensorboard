@@ -39,7 +39,9 @@ limitations under the License.
                 <div
                   class="op-name input-op-name"
                   (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: inputOpInfo.op_name})"
-                >{{inputOpInfo.op_name}}</div>
+                >
+                  {{inputOpInfo.op_name}}
+                </div>
                 <div class="input-op-output-slot slot">
                   Output slot: {{inputOpInfo.output_slot}}
                 </div>
@@ -100,7 +102,9 @@ limitations under the License.
                 <div
                   class="op-name"
                   (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: consumerOpInfo.op_name})"
-                >{{consumerOpInfo.op_name}}</div>
+                >
+                  {{consumerOpInfo.op_name}}
+                </div>
                 <div class="slot">
                   Input slot: {{consumerOpInfo.input_slot}}
                 </div>

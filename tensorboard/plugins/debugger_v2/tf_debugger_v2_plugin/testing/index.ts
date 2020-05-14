@@ -156,6 +156,7 @@ export function createDebuggerState(
     graphExecutions: createDebuggerGraphExecutionsState(),
     graphs: createDebuggerGraphsState(),
     stackFrames: {},
+    stackTraceFocusType: null,
     sourceCode: {
       sourceFileListLoaded: {
         state: DataLoadState.NOT_LOADED,
