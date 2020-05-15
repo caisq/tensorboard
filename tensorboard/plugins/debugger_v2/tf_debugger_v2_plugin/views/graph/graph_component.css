@@ -48,6 +48,12 @@ limitations under the License.
   padding-top: 5px;
 }
 
+.input-op-name {
+  display: inline-block;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+}
+
 .input-op-output-slot {
   display: inline-block;
 }
@@ -57,12 +63,6 @@ limitations under the License.
   display: inline-block;
   margin-right: 5px;
   padding-bottom: 5px;
-}
-
-.input-op-name {
-  display: inline-block;
-  overflow-wrap: anywhere;
-  text-decoration: underline;
 }
 
 .input-slot-header {

@@ -195,8 +195,12 @@ describe('Graph Container', () => {
               expect(inputOpTypes[0].nativeElement.innerText).toBe('InputOp');
             } else {
               expect(inputOpTypes.length).toBe(0);
-              const opInfoMissing = inputsContainer.query(By.css('.op-info-missing'));
-              expect(opInfoMissing.nativeElement.innerText).toEqual('(Op info unavailable.)');
+              const opInfoMissing = inputsContainer.query(
+                By.css('.op-info-missing')
+              );
+              expect(opInfoMissing.nativeElement.innerText).toEqual(
+                '(Op info unavailable.)'
+              );
             }
             // Check consumers section.
             const consumersContainer = fixture.debugElement.query(
