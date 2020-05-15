@@ -139,11 +139,20 @@ fdescribe('Graph Container', () => {
       By.css('.no-op-focused')
     );
     expect(noOpFocused).toBeNull();
-    const selfOpContainer = fixture.debugElement.query(By.css('.self-op-container'))
+    // Check self op section.
+    const selfOpContainer = fixture.debugElement.query(By.css('.self-op-container'));
     const selfOpName = selfOpContainer.query(By.css('.self-op-name'));
     expect(selfOpName.nativeElement.innerText).toEqual('op2');
     const selfOpType = selfOpContainer.query(By.css('.op-type'));
     expect(selfOpType.nativeElement.innerText).toEqual('SelfOp');
+    // Check inputs section.
+    const inputsContainer = fixture.debugElement.query(By.css('.inputs-container'));
+    const inputOpNames = inputsContainer.queryAll(By.css('.op-name'));
+    expect(inputOpNames.length).toBe(1);
+    expect(inputOpNames[0].nativeElement.innerText).toEqual('op1');
+    const inputOpTypes = inputsContainer.queryAll(By.css('.op-type'));
+    expect(inputOpTypes.length).toBe(1);
+    expect(inputOpTypes[0].nativeElement.innerText).toEqual('InputOp');
   });
 
 });
