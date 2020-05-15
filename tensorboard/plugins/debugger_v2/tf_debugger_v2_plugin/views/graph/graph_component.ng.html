@@ -37,7 +37,7 @@ limitations under the License.
                   class="op-name input-op-name"
                   (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: inputOpInfo.op_name})"
                 >
-                  {{inputOpInfo.op_name}}
+                  <span>{{inputOpInfo.op_name}}</span>
                 </div>
                 <div class="input-op-output-slot slot">
                   Output slot: {{inputOpInfo.output_slot}}
@@ -81,7 +81,7 @@ limitations under the License.
             *ngFor="let slotConsumers of consumerOps; let slot = index"
             class="slot-consumers-container"
           >
-            <div>
+            <div class="slot-consumers-header">
               Output slot {{slot}}: ({{slotConsumers.length}}
               <span *ngIf="slotConsumers.length === 1; else pluralConsumers">
                 consumer)
@@ -100,7 +100,7 @@ limitations under the License.
                   class="op-name"
                   (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: consumerOpInfo.op_name})"
                 >
-                  {{consumerOpInfo.op_name}}
+                  <span>{{consumerOpInfo.op_name}}</span>
                 </div>
                 <div class="slot">
                   Input slot: {{consumerOpInfo.input_slot}}
@@ -139,4 +139,3 @@ limitations under the License.
     </div>
   </ng-template>
 </div>
-
