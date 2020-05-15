@@ -232,4 +232,93 @@ fdescribe('Graph Container', () => {
       );
     }
   }
+
+  it('renders op with no input tensor 1 consumer: data available', () => {
+    const fixture = TestBed.createComponent(GraphContainer);
+    const op1 = createTestGraphOpInfo({
+      op_name: 'op1',
+      op_type: 'SelfOp',
+    });
+    const op2 = createTestGraphOpInfo({
+      op_name: 'op2',
+      op_type: 'ConsumerOp',
+    });
+    op1.inputs = [];
+    op1.consumers = [
+      [
+        {
+          op_name: 'op2',
+          input_slot: 0,
+        },
+      ],
+    ];
+    op2.inputs = [
+      {
+        op_name: 'op1',
+        output_slot: 0,
+      },
+    ];
+    store.overrideSelector(getFocusedGraphOpInfo, op1);
+    store.overrideSelector(getFocusedGraphOpInputs, []);
+    store.overrideSelector(getFocusedGraphOpConsumers, [
+      [
+        {
+          ...op1.consumers[0][0],
+          data: op2,
+        },
+      ],
+    ]);
+
+    fixture.detectChanges();
+
+    const noOpFocused = fixture.debugElement.query(By.css('.no-op-focused'));
+    expect(noOpFocused).toBeNull();
+    // Check self op section.
+    const selfOpContainer = fixture.debugElement.query(
+      By.css('.self-op-container')
+    );
+    const selfOpName = selfOpContainer.query(By.css('.self-op-name'));
+    expect(selfOpName.nativeElement.innerText).toBe('op1');
+    const selfOpType = selfOpContainer.query(By.css('.op-type'));
+    expect(selfOpType.nativeElement.innerText).toBe('SelfOp');
+    // Check inputs section.
+    const inputsContainer = fixture.debugElement.query(
+      By.css('.inputs-container')
+    );
+    const inputOpSections = inputsContainer.queryAll(
+      By.css('.input-op-section')
+    );
+    expect(inputOpSections.length).toBe(0);
+    const noInputsIndicator = fixture.debugElement.query(
+      By.css('.no-inputs-indicator')
+    );
+    expect(noInputsIndicator.nativeElement.innerText).toBe(
+      '(This op has no data input tensor.)'
+    );
+    // Check consumers section.
+    const consumersContainer = fixture.debugElement.query(
+      By.css('.consumers-container')
+    );
+    const slotConsumersContainers = consumersContainer.queryAll(
+      By.css('.slot-consumers-container')
+    );
+    expect(slotConsumersContainers.length).toBe(1);
+    const slotConsumersContainer = slotConsumersContainers[0];
+    const slotConsumersHeader = slotConsumersContainer.queryAll(
+      By.css('.slot-consumers-header')
+    );
+    expect(slotConsumersHeader.length).toBe(1);
+    expect(slotConsumersHeader[0].nativeElement.innerText).toBe(
+      'Output slot 0: (1 consumer)'
+    );
+    const consumerOpNames = slotConsumersContainer.queryAll(By.css('.op-name'));
+    expect(consumerOpNames.length).toBe(1);
+    expect(consumerOpNames[0].nativeElement.innerText).toEqual('op2');
+    const consumerInputSlots = slotConsumersContainer.queryAll(By.css('.slot'));
+    expect(consumerInputSlots.length).toBe(1);
+    expect(consumerInputSlots[0].nativeElement.innerText).toBe(`Input slot: 0`);
+    const consumerOpTypes = slotConsumersContainer.queryAll(By.css('.op-type'));
+    expect(consumerOpTypes.length).toBe(1);
+    expect(consumerOpTypes[0].nativeElement.innerText).toEqual('ConsumerOp');
+  });
 });

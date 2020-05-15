@@ -26,7 +26,7 @@ limitations under the License.
         <div>
           <div
             *ngFor="let inputOpInfo of inputOps; let slot = index"
-            class="input-ops-section"
+            class="input-op-section"
           >
             <div class="input-slot-header">
               Input slot {{slot}}:
@@ -55,7 +55,7 @@ limitations under the License.
       </div>
 
       <ng-template #noInputs>
-        <div class="inputs-container">
+        <div class="inputs-container no-inputs-indicator">
           (This op has no data input tensor.)
         </div>
       </ng-template>
