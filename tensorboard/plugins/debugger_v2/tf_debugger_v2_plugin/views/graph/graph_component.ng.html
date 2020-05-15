@@ -119,7 +119,7 @@ limitations under the License.
 
       <ng-template #noConsumers>
         <div class="op-consumers-container">
-          (This op has {{totalNumConsumers}} output tensors and no data
+          (This op has {{opInfo.consumers.length}} output tensor(s) and no data
           consumer.)
         </div>
       </ng-template>

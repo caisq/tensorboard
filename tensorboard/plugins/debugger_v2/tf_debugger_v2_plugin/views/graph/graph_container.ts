@@ -44,7 +44,6 @@ export class GraphContainer {
   readonly consumerOps$ = this.store.pipe(select(getFocusedGraphOpConsumers));
 
   onGraphOpNavigate(event: {graph_id: string; op_name: string}) {
-    console.log('onGraphOpNavigate(): event=', event); // DEBUG
     this.store.dispatch(graphOpFocused(event));
   }
 
