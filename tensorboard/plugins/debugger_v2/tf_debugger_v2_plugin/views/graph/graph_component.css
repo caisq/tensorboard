@@ -95,6 +95,10 @@ limitations under the License.
   border: 2px solid #ffd3b2;
 }
 
+.op-info-missing {
+  color: #808080;
+}
+
 .op-name {
   cursor: pointer;
   display: block;
