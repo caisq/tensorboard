@@ -695,7 +695,7 @@ export class DebuggerEffects {
         // TODO(cais): Add catchError() to pipe.
       })
     );
-  } // TODO(cais): Add unit test.
+  }
 
   private loadGraphOpStackFrames(
     prevStream$: Observable<string[]>
@@ -737,7 +737,7 @@ export class DebuggerEffects {
         // TODO(cais): Add catchError() to pipe.
       })
     );
-  } // TODO(cais): Add unit test.
+  }
 
   /**
    * Emits when user focuses on an alert type.
