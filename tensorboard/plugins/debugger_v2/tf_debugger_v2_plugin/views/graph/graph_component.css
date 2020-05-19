@@ -80,6 +80,7 @@ limitations under the License.
 }
 
 .op-container {
+  background-color: transparent;
   border: 2px solid #c6cad1;
   border-radius: 4px;
   box-shadow: 1px 3px #eee;
@@ -145,4 +146,8 @@ limitations under the License.
   margin-right: 5px;
   padding-top: 5px;
   vertical-align: top;
+}
+
+.slot-consumers-header {
+  white-space: nowrap;
 }

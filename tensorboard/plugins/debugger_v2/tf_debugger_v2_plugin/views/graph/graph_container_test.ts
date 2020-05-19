@@ -343,7 +343,7 @@ describe('Graph Container', () => {
         By.css('.no-inputs-indicator')
       );
       expect(noInputsIndicator.nativeElement.innerText).toBe(
-        '(This op has no data input tensor.)'
+        '(This op has no input tensor.)'
       );
       // Check consumers section.
       const consumersContainer = fixture.debugElement.query(
@@ -471,7 +471,7 @@ describe('Graph Container', () => {
         By.css('.no-inputs-indicator')
       );
       expect(noInputsIndicator.nativeElement.innerText).toBe(
-        '(This op has no data input tensor.)'
+        '(This op has no input tensor.)'
       );
       // Check consumers section.
       const consumersContainer = fixture.debugElement.query(
@@ -624,7 +624,7 @@ describe('Graph Container', () => {
       By.css('.op-consumers-container')
     );
     expect(noConsumers.nativeElement.innerText).toEqual(
-      '(This op has 1 output tensor(s) and no data consumer.)'
+      '(This op has 1 output tensor and no consumer.)'
     );
   });
 });

@@ -31,7 +31,7 @@ limitations under the License.
             <div class="input-slot-header">
               Input slot {{slot}}:
             </div>
-            <div class="op-container input-op-container">
+            <button class="op-container input-op-container">
               <div class="input-tensor-name">
                 <div
                   class="op-name input-op-name"
@@ -49,27 +49,28 @@ limitations under the License.
               >
                 {{inputOpInfo.data.op_type}}
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>
 
       <ng-template #noInputs>
         <div class="inputs-container no-inputs-indicator">
-          (This op has no data input tensor.)
+          (This op has no input tensor.)
         </div>
+        <!-- TODO(cais): Add a ? icon to explain control inputs are not included. -->
       </ng-template>
 
       <div class="self-op-container">
         <div class="self-op-header">
           Op:
         </div>
-        <div class="op-container ">
+        <button class="op-container ">
           <div>
             <div class="op-name self-op-name">{{opInfo.op_name}}</div>
             <div class="op-type">{{opInfo.op_type}}</div>
           </div>
-        </div>
+        </button>
       </div>
 
       <div
@@ -95,7 +96,7 @@ limitations under the License.
               *ngFor="let consumerOpInfo of slotConsumers"
               class="consumer-section"
             >
-              <div class="op-container consumer-op-container">
+              <button class="op-container consumer-op-container">
                 <div
                   class="op-name"
                   (click)="onGraphOpNavigate.emit({graph_id: graphId, op_name: consumerOpInfo.op_name})"
@@ -111,7 +112,7 @@ limitations under the License.
                 >
                   {{consumerOpInfo.data.op_type}}
                 </div>
-              </div>
+              </button>
             </div>
           </div>
         </div>
@@ -119,8 +120,14 @@ limitations under the License.
 
       <ng-template #noConsumers>
         <div class="op-consumers-container">
-          (This op has {{opInfo.consumers.length}} output tensor(s) and no data
-          consumer.)
+          (This op has {{opInfo.consumers.length}} output
+          <span *ngIf="opInfo.consumers.length === 1; else pluralTensors">
+            tensor
+          </span>
+          <ng-template #pluralTensors>
+            tensors
+          </ng-template>
+          and no consumer.)
         </div>
       </ng-template>
     </div>
