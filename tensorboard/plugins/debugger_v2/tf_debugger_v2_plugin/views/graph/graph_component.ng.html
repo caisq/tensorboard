@@ -33,11 +33,10 @@ limitations under the License.
             </div>
             <graph-op
               [kind]="'input'"
-              [graphId]="graphId"
               [opName]="inputOpInfo.op_name"
               [slot]="inputOpInfo.output_slot"
               [opData]="inputOpInfo.data"
-              (onOpNameClick)="onGraphOpNavigate.emit($event)"
+              (onOpNameClick)="onGraphOpNavigate.emit({op_name: $event.op_name, graph_id: graphId})"
             >
             </graph-op>
           </div>
@@ -57,10 +56,9 @@ limitations under the License.
         </div>
         <graph-op
           [kind]="'self'"
-          [graphId]="graphId"
           [opName]="opInfo.op_name"
           [opData]="opInfo"
-          (onOpNameClick)="onGraphOpNavigate.emit($event)"
+          (onOpNameClick)="onGraphOpNavigate.emit({op_name: $event.op_name, graph_id: graphId})"
         >
         </graph-op>
       </div>
@@ -91,11 +89,10 @@ limitations under the License.
             >
               <graph-op
                 [kind]="'consumer'"
-                [graphId]="graphId"
                 [opName]="consumerOpInfo.op_name"
                 [slot]="consumerOpInfo.input_slot"
                 [opData]="consumerOpInfo.data"
-                (onOpNameClick)="onGraphOpNavigate.emit($event)"
+                (onOpNameClick)="onGraphOpNavigate.emit({op_name: $event.op_name, graph_id: graphId})"
               >
               </graph-op>
             </div>

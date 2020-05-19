@@ -26,21 +26,22 @@ export class GraphOpComponent {
   @Input()
   kind!: 'self' | 'input' | 'consumer';
 
-  // ID of the immediately-enclosing graph.
-  @Input()
-  graphId!: string;
-
+  // Name of the op, e.g., "Dense_1/MatMul_1".
   @Input()
   opName!: string;
 
   // Must be `undefined` if kind is 'self'.
   // Must be a valid number if kind is 'input' or 'consumer'.
+  // If kind is 'input', this is the 0-based output slot index that
+  // provides the input tensor.
+  // If kind is i'consumer', this is the 0-based input slot index
+  // at which the consumer receives the input.
   @Input()
-  slot!: number | undefined;
+  slot: number | undefined;
 
   @Input()
-  opData!: GraphOpInfo | undefined;
+  opData: GraphOpInfo | undefined;
 
   @Output()
-  onOpNameClick = new EventEmitter<{graph_id: string; op_name: string}>();
+  onOpNameClick = new EventEmitter<{op_name: string}>();
 }

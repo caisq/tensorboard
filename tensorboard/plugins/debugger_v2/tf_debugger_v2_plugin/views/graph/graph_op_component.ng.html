@@ -20,7 +20,7 @@ limitations under the License.
     <div
       class="op-name"
       [ngClass]="[kind === 'self' ? 'self-op-name' : '']"
-      (click)="onOpNameClick.emit({graph_id: graphId, op_name: opName})"
+      (click)="onOpNameClick.emit({op_name: opName})"
     >
       <span>{{ opName }}</span>
     </div>
