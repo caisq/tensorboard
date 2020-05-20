@@ -420,9 +420,6 @@ export interface Graphs {
   // `graph_id` refers to the immediately-enclosing graph of the ops.
   ops: {
     [graph_id: string]: {
-      // TODO(cais): Change this to a map to avoid shawdoing
-      // by op names that collide with JavaScript builtin names such as
-      // "toString".
       [op_name: string]: GraphOpInfo;
     };
   };
@@ -430,7 +427,9 @@ export interface Graphs {
   // What ops are currently being loaded from the data source.
   // `graph_id` refers to the immediately-enclosing graph of the ops.
   loadingOps: {
-    [graph_id: string]: Map<string, DataLoadState>;
+    [graph_id: string]: {
+      [op_name: string]: DataLoadState;
+    };
   };
 
   // Op being focused on in the UI (if any).
