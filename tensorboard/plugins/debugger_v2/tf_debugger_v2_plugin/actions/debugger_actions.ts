@@ -161,11 +161,6 @@ export const graphExecutionScrollToIndex = createAction(
   props<{index: number}>()
 );
 
-export const graphExecutionFocused = createAction(
-  '[Debugger] Scroll Intra-Graph Execution List to Given Index',
-  props<{index: number}>()
-);
-
 /**
  * Actions related to graph ops.
  */
