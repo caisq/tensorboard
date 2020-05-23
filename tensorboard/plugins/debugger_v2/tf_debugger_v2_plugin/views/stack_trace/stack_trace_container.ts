@@ -15,10 +15,16 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {createSelector, select, Store} from '@ngrx/store';
 
-import {State} from '../../store/debugger_types';
+import {State, CodeLocationType} from '../../store/debugger_types';
 
 import {sourceLineFocused} from '../../actions';
-import {getFocusedStackFrames, getFocusedSourceLineSpec} from '../../store';
+import {
+  getCodeLocationFocusType,
+  getFocusedExecutionData,
+  getFocusedGraphOpInfo,
+  getFocusedSourceLineSpec,
+  getFocusedStackFrames,
+} from '../../store';
 import {StackFrameForDisplay} from './stack_trace_component';
 
 /** @typehack */ import * as _typeHackRxjs from 'rxjs';
@@ -27,12 +33,49 @@ import {StackFrameForDisplay} from './stack_trace_component';
   selector: 'tf-debugger-v2-stack-trace',
   template: `
     <stack-trace-component
+      [stackTraceType]="stackTraceType$ | async"
+      [originOpInfo]="originOpInfo$ | async"
       [stackFramesForDisplay]="stackFramesForDisplay$ | async"
       (onSourceLineClicked)="onSourceLineClicked($event)"
     ></stack-trace-component>
   `,
 })
 export class StackTraceContainer {
+  readonly stackTraceType$ = this.store.pipe(select(getCodeLocationFocusType));
+
+  readonly originOpInfo$ = this.store.pipe(
+    select(
+      createSelector(
+        getCodeLocationFocusType,
+        getFocusedExecutionData,
+        getFocusedGraphOpInfo,
+        (codeLocationFocusType, executionData, graphOpInfo) => {
+          if (codeLocationFocusType === null) {
+            return null;
+          }
+          if (codeLocationFocusType === CodeLocationType.EXECUTION) {
+            if (executionData === null) {
+              return null;
+            }
+            return {
+              opName: null,
+              opType: executionData.op_type,
+            };
+          } else {
+            // This is CodeLocationType.GRAPH_OP_CREATION.
+            if (graphOpInfo === null) {
+              return null;
+            }
+            return {
+              opName: graphOpInfo.op_name,
+              opType: graphOpInfo.op_type,
+            };
+          }
+        }
+      )
+    )
+  );
+
   readonly stackFramesForDisplay$ = this.store.pipe(
     select(
       createSelector(

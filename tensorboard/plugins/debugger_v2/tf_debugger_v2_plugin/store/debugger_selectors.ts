@@ -20,6 +20,7 @@ import {
   AlertsByIndex,
   Alerts,
   AlertType,
+  CodeLocationType,
   DataLoadState,
   DEBUGGER_FEATURE_KEY,
   DebuggerRunListing,
@@ -461,6 +462,13 @@ export const getFocusedExecutionData = createSelector(
   }
 );
 
+export const getCodeLocationFocusType = createSelector(
+  selectDebuggerState,
+  (state: DebuggerState): CodeLocationType | null => {
+    return state.codeLocationFocusType;
+  }
+);
+
 /**
  * Get the stack trace (frames) of the execution event currently focused on
  * (if any).
@@ -472,18 +480,18 @@ export const getFocusedExecutionData = createSelector(
 export const getFocusedStackFrames = createSelector(
   selectDebuggerState,
   (state: DebuggerState): StackFrame[] | null => {
-    if (state.stackTraceFocusType === null) {
-      return null; // TODO(cais): Add unit test.
+    if (state.codeLocationFocusType === null) {
+      return null;
     }
     let stackFrameIds: string[] = [];
-    if (state.stackTraceFocusType === 'execution') {
+    if (state.codeLocationFocusType === CodeLocationType.EXECUTION) {
       const {focusIndex, executionData} = state.executions;
       if (focusIndex === null || executionData[focusIndex] === undefined) {
         return null;
       }
       stackFrameIds = executionData[focusIndex].stack_frame_ids;
     } else {
-      // 'graph_op';  // TODO(cais): Add unit test.
+      // This is CodeLocationType.GRAPH_OP_CREATION.
       if (state.graphs.focusedOp === null) {
         return null;
       }
