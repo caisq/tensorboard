@@ -15,7 +15,7 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {createSelector, select, Store} from '@ngrx/store';
 
-import {State, CodeLocationType} from '../../store/debugger_types';
+import {CodeLocationType, State} from '../../store/debugger_types';
 
 import {sourceLineFocused} from '../../actions';
 import {
