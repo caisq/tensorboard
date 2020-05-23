@@ -513,7 +513,7 @@ export interface DebuggerState {
   stackFrames: StackFramesById;
 
   // What the currently focused code location (stack trace) describes.
-  //   - `null` is for the case of no code location is focused on.
+  //   - `null` is for the case where no code location is focused on.
   //   - `CodeLocationType.EXECUTION` is for the code location of an eager
   //     (top-level) execution.
   //   - `CodeLocationType.GRAPH_OP_CREATION` is for the code location of

@@ -58,8 +58,8 @@ export class StackTraceContainer {
               return null;
             }
             return {
-              opName: null,
               opType: executionData.op_type,
+              opName: null,
             };
           } else {
             // This is CodeLocationType.GRAPH_OP_CREATION.
@@ -67,8 +67,8 @@ export class StackTraceContainer {
               return null;
             }
             return {
-              opName: graphOpInfo.op_name,
               opType: graphOpInfo.op_type,
+              opName: graphOpInfo.op_name,
             };
           }
         }
