@@ -15,7 +15,7 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {createSelector, select, Store} from '@ngrx/store';
 
-import {CodeLocationType, State} from '../../store/debugger_types';
+import {CodeLocationType, State, StackFrame} from '../../store/debugger_types';
 
 import {sourceLineFocused} from '../../actions';
 import {
@@ -86,22 +86,38 @@ export class StackTraceContainer {
             return null;
           }
           const output: StackFrameForDisplay[] = [];
+          // 1st pass: Find the stackFrame that is the topmost in the focused file.
+          let topmostFrameInFocusedFile: StackFrame | null = null;
+          if (focusedSourceLineSpec !== null) {
+            for (const stackFrame of stackFrames) {
+              const [host_name, file_path] = stackFrame;
+              if (
+                host_name === focusedSourceLineSpec.host_name &&
+                file_path === focusedSourceLineSpec.file_path
+              ) {
+                topmostFrameInFocusedFile = stackFrame;
+              }
+            }
+          }
           for (const stackFrame of stackFrames) {
             const [host_name, file_path, lineno, function_name] = stackFrame;
             const pathItems = file_path.split('/');
             const concise_file_path = pathItems[pathItems.length - 1];
-            const focused =
+            const belongsToFocusedFile =
               focusedSourceLineSpec !== null &&
               host_name === focusedSourceLineSpec.host_name &&
-              file_path === focusedSourceLineSpec.file_path &&
-              lineno === focusedSourceLineSpec.lineno;
+              file_path === focusedSourceLineSpec.file_path;
+            const focused =
+              belongsToFocusedFile && lineno === focusedSourceLineSpec!.lineno;
             output.push({
               host_name,
               file_path,
               concise_file_path,
               lineno,
               function_name,
+              belongsToFocusedFile,
               focused,
+              topmostInFocusedFile: stackFrame === topmostFrameInFocusedFile,
             });
           }
           return output;

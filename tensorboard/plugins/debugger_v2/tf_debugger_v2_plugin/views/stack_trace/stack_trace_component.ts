@@ -22,9 +22,19 @@ export interface StackFrameForDisplay {
   concise_file_path: string;
   lineno: number;
   function_name: string;
-  // Whether the stack frame is being focused on (e.g.,
-  // being viewed in the source code viewer).
+  // Whether the stack frame is a part of the focused file.
+  // Being a part of the focused file is a necessary but insufficient
+  // condition for being the focused stack frame (see `focused` below).
+  belongsToFocusedFile: boolean;
+  // Whether the stack frame is the one being focused on (e.g.,
+  // being viewed in the source code viewer). If this field is `true`,
+  // `belongsToFocusedFile` must also be `true`.
   focused: boolean;
+  // Is this stack frame the topmost in the focused file.
+  // N.B.: Python stack frames are printed from bottommost to topmost by
+  // default, a "topmost" stack frame is actually the one that appears
+  // the last in a typical stack trace printed from Python.
+  topmostInFocusedFile: boolean;
 }
 
 @Component({
@@ -56,6 +66,10 @@ export class StackTraceComponent {
     file_path: string;
     lineno: number;
   }>();
+
+  toggleTopmostFrameInFile() {
+    console.log('toggleTopmostFrameInFile():'); // DEBUG
+  }
 
   CodeLocationType = CodeLocationType;
 }

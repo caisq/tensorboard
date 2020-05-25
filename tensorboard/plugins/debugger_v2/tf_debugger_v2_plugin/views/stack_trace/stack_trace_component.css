@@ -13,9 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+.focused-file {
+  font-weight: bold;
+}
+
 .focused-stack-frame {
   background-color: rgba(255, 111, 0, 0.3);
-  font-weight: bold;
 }
 
 .no-stack-trace {

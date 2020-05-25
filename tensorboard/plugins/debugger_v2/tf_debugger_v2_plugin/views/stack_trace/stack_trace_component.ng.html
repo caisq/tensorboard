@@ -21,6 +21,15 @@ limitations under the License.
       Stack Trace
     </span>
 
+    <button
+      mat-button
+      (click)="toggleTopmostFrameInFile()"
+      title="Stick to the topmost frame in file"
+    >
+      ⤓
+    </button>
+    <!-- TODO(cais): Adjust layout. -->
+
     <div
       *ngIf="stackTraceType !== null; else noStackTrace"
       class="stack-trace-aux-info"
@@ -70,8 +79,12 @@ limitations under the License.
     >
       <div
         class="stack-frame-container"
-        [ngClass]="[stackFrameForDisplay.focused ? 'focused-stack-frame' : '']"
+        [ngClass]="[
+          stackFrameForDisplay.belongsToFocusedFile ? 'focused-file' : '',
+          stackFrameForDisplay.focused ? 'focused-stack-frame' : ''
+        ]"
       >
+        <!-- TODO(cais): add unit tests -->
         <div
           class="stack-frame-file-path"
           title="{{stackFrameForDisplay.file_path}}"

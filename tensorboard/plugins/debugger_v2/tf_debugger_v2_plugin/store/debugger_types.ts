@@ -485,6 +485,8 @@ export interface SourceCodeState {
   // the array in `sourceFileList`.
   // Use `null` for the case wherein no line is focused on.
   focusLineSpec: SourceLineSpec | null;
+
+  // stickToTopmostInFocusedFile: boolean;
 }
 
 export interface DebuggerState {
@@ -517,7 +519,7 @@ export interface DebuggerState {
   //   - `CodeLocationType.EXECUTION` is for the code location of an eager
   //     (top-level) execution.
   //   - `CodeLocationType.GRAPH_OP_CREATION` is for the code location of
-  //     the creation of a graph op.
+  //     the creation of a graph o071221p.
   codeLocationFocusType: CodeLocationType | null;
 
   sourceCode: SourceCodeState;
