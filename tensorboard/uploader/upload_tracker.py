@@ -39,6 +39,78 @@ def readable_bytes_string(bytes):
         return "%d B" % bytes
 
 
+class UploadStats(object):
+    """Statistics of uploading."""
+
+    def __init__(self):
+        self._num_scalars = 0
+        self._num_tensors = 0
+        self._num_tensors_skipped = 0
+        self._tensor_bytes = 0
+        self._tensor_bytes_skipped = 0
+        self._num_blobs = 0
+        self._num_blobs_skipped = 0
+        self._blob_bytes = 0
+        self._blob_bytes_skipped = 0
+        self._plugin_names = set()
+
+    def add_scalars(self, num_scalars):
+        self._num_scalars += num_scalars
+
+    def add_tensors(
+        self, num_tensors, num_tensors_skipped, num_bytes, num_bytes_skipped
+    ):
+        assert num_tensors_skipped <= num_tensors
+        assert num_bytes_skipped <= num_bytes
+        self._num_tensors += num_tensors
+        self._num_tensors_skipped += num_tensors_skipped
+        self._tensor_bytes += num_bytes
+        self._tensor_bytes_skipped = num_bytes_skipped
+
+    def add_blob(self, blob_bytes, is_skipped):
+        self._num_blobs += 1
+        self._blob_bytes += blob_bytes
+        if is_skipped:
+            self._num_blobs_skipped += 1
+            self._blob_bytes_skipped += blob_bytes
+
+    @property
+    def num_scalars(self):
+        return self._num_scalars
+
+    @property
+    def num_tensors(self):
+        return self._num_tensors
+
+    @property
+    def num_tensors_skipped(self):
+        return self._num_tensors_skipped
+
+    @property
+    def tensor_bytes(self):
+        return self._tensor_bytes
+
+    @property
+    def tensor_bytes_skipped(self):
+        return self._tensor_bytes_skipped
+
+    @property
+    def num_blobs(self):
+        return self._num_blobs
+
+    @property
+    def num_blobs_skipped(self):
+        return self._num_blobs_skipped
+
+    @property
+    def blob_bytes(self):
+        return self._blob_bytes
+
+    @property
+    def blob_bytes_skipped(self):
+        return self._blob_bytes_skipped
+
+
 class UploadTracker(object):
     """Tracker for uploader progress and status."""
 
@@ -49,8 +121,9 @@ class UploadTracker(object):
         self._cumulative_tensor_bytes = 0
         self._cumulative_tensor_bytes_skipped = 0
         self._cumulative_num_blobs = 0
-        self._cumulative_num_blobs_uploaded = 0
-        self._cumulative_blob_bytes_uploaded = 0
+        self._cumulative_num_blobs_skipped = 0
+        self._cumulative_blob_bytes = 0
+        self._cumulative_blob_bytes_skipped = 0
         self._cumulative_plugin_names = set()
         self._dot_counter = 0
 
@@ -66,8 +139,9 @@ class UploadTracker(object):
         self._tensor_bytes = 0
         self._tensor_bytes_skipped = 0
         self._num_blobs = 0
-        self._num_blobs_uploaded = 0
-        self._blob_bytes_uploaded = 0
+        self._num_blobs_skipped = 0
+        self._blob_bytes = 0
+        self._blob_bytes_skipped = 0
         self._plugin_names = set()
         self._progress_bar = None
 
@@ -89,11 +163,11 @@ class UploadTracker(object):
         self._cumulative_tensor_bytes += self._tensor_bytes
         self._cumulative_tensor_bytes_skipped += self._tensor_bytes_skipped
         self._cumulative_num_blobs += self._num_blobs
-        self._cumulative_num_blobs += self._num_blobs
-        self._cumulative_num_blobs_uploaded += self._num_blobs_uploaded
-        self._cumulative_blob_bytes_uploaded += self._blob_bytes_uploaded
+        self._cumulative_num_blobs_skipped += self._num_blobs_skipped
+        self._cumulative_blob_bytes += self._blob_bytes
+        self._cumulative_blob_bytes_skipped += self._blob_bytes_skipped
         self._cumulative_plugin_names.update(self._plugin_names)
-        if self._num_scalars or self._num_tensors or self._num_blobs_uploaded:
+        if self._num_scalars or self._num_tensors or self._num_blobs:
             if self._progress_bar:
                 self._update_status("")
                 self._progress_bar.close()
@@ -108,14 +182,19 @@ class UploadTracker(object):
                     self._num_scalars,
                     self._num_tensors,
                     readable_bytes_string(self._tensor_bytes),
-                    self._num_blobs_uploaded,
-                    readable_bytes_string(self._blob_bytes_uploaded),
+                    self._num_blobs,
+                    readable_bytes_string(
+                        self._blob_bytes - self._blob_bytes_skipped
+                    ),
                     ", ".join(self._plugin_names),
                     self._cumulative_num_scalars,
                     self._cumulative_num_tensors,
                     readable_bytes_string(self._cumulative_tensor_bytes),
-                    self._cumulative_num_blobs_uploaded,
-                    readable_bytes_string(self._cumulative_blob_bytes_uploaded),
+                    self._cumulative_num_blobs,
+                    readable_bytes_string(
+                        self._cumulative_blob_bytes
+                        - self._cumulative_blob_bytes_skipped
+                    ),
                 )
             )
             sys.stdout.flush()
@@ -156,13 +235,39 @@ class UploadTracker(object):
     def tensors_done(self):
         pass
 
-    def blob_start(self, blob_bytes):
-        self._num_blobs += 1
-        self._update_status(
-            "Uploading binary object (%s)" % readable_bytes_string(blob_bytes)
-        )
+    def blob_tracker(self, blob_bytes):
+        return BlobTracker(self, blob_bytes)
 
-    def blob_done(self, is_uploaded, blob_bytes_uploaded):
-        if is_uploaded:
-            self._num_blobs_uploaded += 1
-            self._blob_bytes_uploaded += blob_bytes_uploaded
+    # def blob_start(self, blob_bytes):
+    #     pass
+    # #     self._num_blobs += 1
+    # #     self._blob_bytes += blob_bytes
+    # #     self._update_status(
+    # #         "Uploading binary object (%s)" % readable_bytes_string(blob_bytes)
+    # #     )
+
+    # def blob_done(self, is_uploaded):
+    #     pass
+    # #     if not is_uploaded:
+    # #         self._num_blobs_uploaded += 1
+    # #         self._blob_bytes_uploaded += blob_bytes_uploaded
+
+
+class BlobTracker(object):
+    def __init__(self, upload_tracker, blob_bytes):
+        self._upload_tracker = upload_tracker
+        self._blob_bytes = blob_bytes
+
+    def __enter__(self):
+        self._upload_tracker._update_status(
+            "Uploading binary object (%s)"
+            % readable_bytes_string(self._blob_bytes)
+        )
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        del exc_type, exc_val, exc_tb  # Unuse.
+        pass
+
+    def mark_uploaded(self, is_uploaded):
+        pass

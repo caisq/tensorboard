@@ -147,6 +147,19 @@ py_test(
     ],
 )
 
+
+py_test(
+    name = "upload_tracker_test",
+    srcs = ["upload_tracker_test.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":upload_tracker",
+        "//tensorboard:test",
+        # TODO(cais): Check unused deps.
+        "@org_pythonhosted_mock",
+    ],
+)
+
 py_library(
     name = "auth",
     srcs = ["auth.py"],
