@@ -18,6 +18,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import contextlib
 from datetime import datetime
 import sys
 
@@ -249,21 +250,31 @@ class UploadTracker(object):
             if self._progress_bar:
                 self._update_status("")
             self._update_cumulative_status(
-                "[%s] Uploaded %s. Cumulative: %s"
+                "[%s] Uploaded %s."
                 % (
                     readable_time_string(),
                     self._stats.uploaded_summary,
-                    self._cumulative_stats.uploaded_summary,
+                    # self._cumulative_stats.uploaded_summary,
                 )
             )
-            # sys.stdout.flush()
 
     def add_plugin_name(self, plugin_name):
         self._stats.add_plugin(plugin_name)
 
+    @contextlib.contextmanager
     def scalars_tracker(self, num_scalars):
-        return ScalarsTracker(self._stats, self._update_status, num_scalars)
+        """Create a context manager for tracking a scalar batch upload.
 
+        Args:
+          num_scalars: Number of scalars in the batch.
+        """
+        self._update_status("Uploading %d scalars" % num_scalars)
+        try:
+            yield
+        finally:
+            self._stats.add_scalars(num_scalars)
+
+    @contextlib.contextmanager
     def tensors_tracker(
         self,
         num_tensors,
@@ -271,58 +282,9 @@ class UploadTracker(object):
         tensor_bytes,
         tensor_bytes_skipped,
     ):
-        return TensorsTracker(
-            self._stats,
-            self._update_status,
-            num_tensors,
-            num_tensors_skipped,
-            tensor_bytes,
-            tensor_bytes_skipped,
-        )
-
-    def blob_tracker(self, blob_bytes):
-        return BlobTracker(self._stats, self._update_status, blob_bytes)
-
-
-class ScalarsTracker(object):
-    def __init__(self, upload_stats, update_status, num_scalars):
-        """Constructor of ScalarsTracker.
+        """Create a context manager for tracking a tensor batch upload.
 
         Args:
-          upload_stats: An instance of `UploadStats` to be used to keep track
-            of uploaded blob and its byte size.
-          update_status: A callable for updating status message.
-          num_scalars: Number of scalars in the batch.
-        """
-        self._upload_stats = upload_stats
-        self._update_status = update_status
-        self._num_scalars = num_scalars
-
-    def __enter__(self):
-        self._update_status("Uploading %d scalars" % self._num_scalars)
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        del exc_type, exc_val, exc_tb  # Unused.
-        self._upload_stats.add_scalars(self._num_scalars)
-
-
-class TensorsTracker(object):
-    def __init__(
-        self,
-        upload_stats,
-        update_status,
-        num_tensors,
-        num_tensors_skipped,
-        tensor_bytes,
-        tensor_bytes_skipped,
-    ):
-        """Constructor of ScalarsTracker.
-
-        Args:
-          upload_stats: An instance of `UploadStats` to be used to keep track
-            of uploaded blob and its byte size.
-          update_status: A callable for updating status message.
           num_tensors: Total number of tensors in the batch.
           num_tensors_skipped: Number of tensors skipped (a subset of
             `num_tensors`).
@@ -330,37 +292,28 @@ class TensorsTracker(object):
           tensor_bytes_skipped: Byte size of skipped tensors in the batch (a
             subset of `tensor_bytes`).
         """
-        self._upload_stats = upload_stats
-        self._update_status = update_status
-        self._num_tensors = num_tensors
-        self._num_tensors_skipped = num_tensors_skipped
-        self._tensor_bytes = tensor_bytes
-        self._tensor_bytes_skipped = tensor_bytes_skipped
-
-    def __enter__(self):
-        if self._num_tensors_skipped:
+        if num_tensors_skipped:
             message = "Uploading %d tensors (%s) (Skipping %d tensors, %s)" % (
-                self._num_tensors - self._num_tensors_skipped,
-                readable_bytes_string(
-                    self._tensor_bytes - self._tensor_bytes_skipped
-                ),
+                num_tensors - num_tensors_skipped,
+                readable_bytes_string(tensor_bytes - tensor_bytes_skipped),
             )
         else:
             message = "Uploading %d tensors (%s)" % (
-                self._num_tensors,
-                readable_bytes_string(self._tensor_bytes),
+                num_tensors,
+                readable_bytes_string(tensor_bytes),
             )
-        self._update_status(message)
-        return self
+        try:
+            yield
+        finally:
+            self._stats.add_tensors(
+                num_tensors,
+                num_tensors_skipped,
+                tensor_bytes,
+                tensor_bytes_skipped,
+            )
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        del exc_type, exc_val, exc_tb  # Unused.
-        self._upload_stats.add_tensors(
-            self._num_tensors,
-            self._num_tensors_skipped,
-            self._tensor_bytes,
-            self._tensor_bytes_skipped,
-        )
+    def blob_tracker(self, blob_bytes):
+        return BlobTracker(self._stats, self._update_status, blob_bytes)
 
 
 class BlobTracker(object):

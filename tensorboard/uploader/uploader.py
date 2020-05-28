@@ -215,7 +215,7 @@ class TensorBoardUploader(object):
         run_to_events = self._logdir_loader.get_run_events()
         self._tracker.send_start()
         self._request_sender.send_requests(run_to_events)
-        self._tracker.send_done()
+        self._tracker.send_done()  # TODO(cais): Remove this call.
 
 
 def update_experiment_metadata(
