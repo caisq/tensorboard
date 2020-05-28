@@ -113,6 +113,14 @@ def define_flags(parser):
         "uploaded in a default, non-dry-run usage of the uploader.",
     )
     upload.add_argument(
+        "--verbose",
+        type=int,
+        default=1,
+        help="Verbosity of the upload during data uploading. Supoprted values: "
+        "0: no statistics printed during uploading. 1 (default): print data "
+        "statistics as data is uploaded.",
+    )
+    upload.add_argument(
         "--plugins",
         type=lambda option: option.split(","),
         default=[],

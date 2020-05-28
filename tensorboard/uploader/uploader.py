@@ -79,6 +79,7 @@ class TensorBoardUploader(object):
         description=None,
         one_shot=None,
         dry_run=None,
+        verbosity=None,
     ):
         """Constructs a TensorBoardUploader.
 
@@ -105,6 +106,9 @@ class TensorBoardUploader(object):
             with done, instead of listening to the logdir continuously for new
             data without exiting. Default: `False`.
           dry_run: Skip sending actual data to the server. Deafult: `False`.
+          verbosity: Level of verbosity, as an integer. Supported value:
+              0 - No upload statistics is printed.
+              1 - Print upload statistics while uploading data (default).
         """
         self._api = writer_client
         self._logdir = logdir
@@ -115,6 +119,7 @@ class TensorBoardUploader(object):
         self._description = description
         self._one_shot = False if one_shot is None else one_shot
         self._dry_run = False if dry_run is None else dry_run
+        self._verbosity = 1 if verbosity is None else verbosity
         self._request_sender = None
         if logdir_poll_rate_limiter is None:
             self._logdir_poll_rate_limiter = util.RateLimiter(
@@ -171,7 +176,9 @@ class TensorBoardUploader(object):
                 self._api.CreateExperiment, request
             )
             experiment_id = response.experiment_id
-        self._tracker = upload_tracker.UploadTracker()
+        self._tracker = (
+            upload_tracker.UploadTracker() if self._verbosity == 1 else None
+        )
         self._request_sender = _BatchedRequestSender(
             experiment_id,
             self._api,
@@ -213,7 +220,9 @@ class TensorBoardUploader(object):
         logger.info("Logdir sync took %.3f seconds", sync_duration_secs)
 
         run_to_events = self._logdir_loader.get_run_events()
-        with self._tracker.send_tracker():
+        with contextlib.ExitStack() as stack:
+            if self._tracker:
+                stack.enter_context(self._tracker.send_tracker())
             self._request_sender.send_requests(run_to_events)
 
 
@@ -398,8 +407,8 @@ class _BatchedRequestSender(object):
                 self._tag_metadata[time_series_key] = metadata
 
             plugin_name = metadata.plugin_data.plugin_name
-            if value.HasField("metadata"):
-                self._tracker.add_plugin_name(plugin_name)
+            # TODO(cais): Call self._tracker.add_plugin_name() to track the
+            # data for what plugins have been uploaded.
             if value.HasField("metadata") and (
                 plugin_name != value.metadata.plugin_data.plugin_name
             ):
@@ -547,9 +556,12 @@ class _ScalarBatchedRequestSender(object):
 
         self._rpc_rate_limiter.tick()
 
-        with _request_logger(
-            request, request.runs
-        ), self._tracker.scalars_tracker(self._num_values):
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(_request_logger(request, request.runs))
+            if self._tracker:
+                stack.enter_context(
+                    self._tracker.scalars_tracker(self._num_values)
+                )
             try:
                 # TODO(@nfelt): execute this RPC asynchronously.
                 if not self._dry_run:
@@ -714,14 +726,17 @@ class _TensorBatchedRequestSender(object):
 
         self._rpc_rate_limiter.tick()
 
-        with _request_logger(
-            request, request.runs
-        ), self._tracker.tensors_tracker(
-            self._num_values,
-            self._num_values_skipped,
-            self._tensor_bytes,
-            self._tensor_bytes_skipped,
-        ):
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(_request_logger(request, request.runs))
+            if self._tracker:
+                stack.enter_context(
+                    self._tracker.tensors_tracker(
+                        self._num_values,
+                        self._num_values_skipped,
+                        self._tensor_bytes,
+                        self._tensor_bytes_skipped,
+                    )
+                )
             try:
                 if not self._dry_run:
                     grpc_util.call_with_retries(self._api.WriteTensor, request)
@@ -1033,12 +1048,16 @@ class _BlobRequestSender(object):
                 # Note the _send_blob() stream is internally flow-controlled.
                 # This rate limit applies to *starting* the stream.
                 self._rpc_rate_limiter.tick()
-                # self._tracker.blob_start(len(blob))
-                with self._tracker.blob_tracker(len(blob)) as blob_tracker:
+                with contextlib.ExitStack() as stack:
+                    if self._tracker:
+                        blob_tracker = stack.enter_context(
+                            self._tracker.blob_tracker(len(blob))
+                        )
                     sent_blobs += self._send_blob(
                         blob_sequence_id, seq_index, blob
                     )
-                    blob_tracker.mark_uploaded(bool(sent_blobs))
+                    if self._tracker:
+                        blob_tracker.mark_uploaded(bool(sent_blobs))
 
             logger.info(
                 "Sent %d of %d blobs for sequence id: %s",
