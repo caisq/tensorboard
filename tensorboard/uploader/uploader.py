@@ -550,11 +550,12 @@ class _ScalarBatchedRequestSender(object):
 
         with _request_logger(request, request.runs):
             try:
-                self._tracker.scalars_start(self._num_values)
-                # TODO(@nfelt): execute this RPC asynchronously.
-                if not self._dry_run:
-                    grpc_util.call_with_retries(self._api.WriteScalar, request)
-                self._tracker.scalars_done()
+                with self._tracker.scalars_tracker(self._num_values):
+                    # TODO(@nfelt): execute this RPC asynchronously.
+                    if not self._dry_run:
+                        grpc_util.call_with_retries(
+                            self._api.WriteScalar, request
+                        )
             except grpc.RpcError as e:
                 if e.code() == grpc.StatusCode.NOT_FOUND:
                     raise ExperimentNotFoundError()
@@ -717,15 +718,16 @@ class _TensorBatchedRequestSender(object):
 
         with _request_logger(request, request.runs):
             try:
-                self._tracker.tensors_start(
+                with self._tracker.tensors_tracker(
                     self._num_values,
                     self._num_values_skipped,
                     self._tensor_bytes,
                     self._tensor_bytes_skipped,
-                )
-                if not self._dry_run:
-                    grpc_util.call_with_retries(self._api.WriteTensor, request)
-                self._tracker.tensors_done()
+                ):
+                    if not self._dry_run:
+                        grpc_util.call_with_retries(
+                            self._api.WriteTensor, request
+                        )
             except grpc.RpcError as e:
                 if e.code() == grpc.StatusCode.NOT_FOUND:
                     raise ExperimentNotFoundError()

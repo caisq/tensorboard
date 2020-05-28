@@ -26,15 +26,15 @@ import tqdm
 
 def readable_time_string():
     """Get a human-readable time string for the present."""
-    return f"{datetime.now():%Y-%m-%dT%H:%M:%S%z}"
+    return f"{datetime.now():%Y-%m-%dT%H:%M:%S}"
 
 
 def readable_bytes_string(bytes):
     """Get a human-readable string for number of bytes."""
     if bytes >= 2 ** 20:
-        return "%.2f MB" % (float(bytes) / 2 ** 20)
+        return "%.1f MB" % (float(bytes) / 2 ** 20)
     elif bytes >= 2 ** 10:
-        return "%.2f kB" % (float(bytes) / 2 ** 10)
+        return "%.1f kB" % (float(bytes) / 2 ** 10)
     else:
         return "%d B" % bytes
 
@@ -116,6 +116,15 @@ class UploadStats(object):
         self._num_blobs += stats.num_blobs
         self._blob_bytes += stats.blob_bytes
         self._blob_bytes_skipped += stats.blob_bytes_skipped
+        self._plugin_names.update(stats.plugin_names)
+
+    def add_plugin(self, plugin_name):
+        """Add a plugin.
+
+        Args:
+          plugin_name: Name of the plugin.
+        """
+        self._plugin_names.add(plugin_name)
 
     @property
     def num_scalars(self):
@@ -153,21 +162,16 @@ class UploadStats(object):
     def blob_bytes_skipped(self):
         return self._blob_bytes_skipped
 
+    @property
+    def plugin_names(self):
+        return self._plugin_names
+
 
 class UploadTracker(object):
     """Tracker for uploader progress and status."""
 
     def __init__(self):
-        self._cumulative_num_scalars = 0
-        self._cumulative_num_tensors = 0
-        self._cumulative_num_tensors_skipped = 0
-        self._cumulative_tensor_bytes = 0
-        self._cumulative_tensor_bytes_skipped = 0
-        self._cumulative_num_blobs = 0
-        self._cumulative_num_blobs_skipped = 0
-        self._cumulative_blob_bytes = 0
-        self._cumulative_blob_bytes_skipped = 0
-        self._cumulative_plugin_names = set()
+        self._cumulative_stats = UploadStats()
         self._dot_counter = 0
 
     def _dummy_generator(self):
@@ -176,16 +180,7 @@ class UploadTracker(object):
             yield 0
 
     def send_start(self):
-        self._num_scalars = 0
-        self._num_tensors = 0
-        self._num_tensors_skipped = 0
-        self._tensor_bytes = 0
-        self._tensor_bytes_skipped = 0
-        self._num_blobs = 0
-        self._num_blobs_skipped = 0
-        self._blob_bytes = 0
-        self._blob_bytes_skipped = 0
-        self._plugin_names = set()
+        self._stats = UploadStats()
         self._progress_bar = None
 
     def _update_status(self, message):
@@ -196,21 +191,16 @@ class UploadTracker(object):
             self._progress_bar = tqdm.tqdm(
                 self._dummy_generator(), bar_format="{desc}"
             )
-        self._progress_bar.set_description_str(message)
+        self._progress_bar.set_description_str("\033[32m" + message + "\033[0m")
         self._progress_bar.update()
 
     def send_done(self):
-        self._cumulative_num_scalars += self._num_scalars
-        self._cumulative_num_tensors += self._num_tensors
-        self._cumulative_num_tensors_skipped += self._num_tensors_skipped
-        self._cumulative_tensor_bytes += self._tensor_bytes
-        self._cumulative_tensor_bytes_skipped += self._tensor_bytes_skipped
-        self._cumulative_num_blobs += self._num_blobs
-        self._cumulative_num_blobs_skipped += self._num_blobs_skipped
-        self._cumulative_blob_bytes += self._blob_bytes
-        self._cumulative_blob_bytes_skipped += self._blob_bytes_skipped
-        self._cumulative_plugin_names.update(self._plugin_names)
-        if self._num_scalars or self._num_tensors or self._num_blobs:
+        self._cumulative_stats.accumulate(self._stats)
+        if (
+            self._stats.num_scalars
+            or self._stats.num_tensors
+            or self._stats.num_blobs
+        ):
             if self._progress_bar:
                 self._update_status("")
                 self._progress_bar.close()
@@ -222,95 +212,156 @@ class UploadTracker(object):
                 "    Cumulative: %d scalars, %d tensors (%s), %d binary objects (%s)\n"
                 % (
                     readable_time_string(),
-                    self._num_scalars,
-                    self._num_tensors,
-                    readable_bytes_string(self._tensor_bytes),
-                    self._num_blobs,
+                    self._stats.num_scalars,
+                    self._stats.num_tensors,
+                    readable_bytes_string(self._stats.tensor_bytes),
+                    self._stats.num_blobs,
                     readable_bytes_string(
-                        self._blob_bytes - self._blob_bytes_skipped
+                        self._stats.blob_bytes - self._stats.blob_bytes_skipped
                     ),
-                    ", ".join(self._plugin_names),
-                    self._cumulative_num_scalars,
-                    self._cumulative_num_tensors,
-                    readable_bytes_string(self._cumulative_tensor_bytes),
-                    self._cumulative_num_blobs,
+                    ", ".join(self._stats.plugin_names),
+                    self._cumulative_stats.num_scalars,
+                    self._cumulative_stats.num_tensors,
+                    readable_bytes_string(self._cumulative_stats.tensor_bytes),
+                    self._cumulative_stats.num_blobs,
                     readable_bytes_string(
-                        self._cumulative_blob_bytes
-                        - self._cumulative_blob_bytes_skipped
+                        self._cumulative_stats.blob_bytes
+                        - self._cumulative_stats.blob_bytes_skipped
                     ),
                 )
             )
             sys.stdout.flush()
 
     def add_plugin_name(self, plugin_name):
-        self._plugin_names.add(plugin_name)
+        self._stats.add_plugin(plugin_name)
 
-    def scalars_start(self, num_scalars):
-        if not num_scalars:
-            return
-        self._num_scalars += num_scalars
-        self._update_status("Uploading %d scalars" % num_scalars)
+    def scalars_tracker(self, num_scalars):
+        return ScalarsTracker(self._stats, self._update_status, num_scalars)
 
-    def scalars_done(self):
-        pass
-
-    def tensors_start(
-        self, num_tensors, num_tensors_skipped, bytes, bytes_skipped
+    def tensors_tracker(
+        self,
+        num_tensors,
+        num_tensors_skipped,
+        tensor_bytes,
+        tensor_bytes_skipped,
     ):
-        if not num_tensors:
-            return
-        self._num_tensors += num_tensors
-        self._tensor_bytes += bytes
-        self._num_tensors_skipped += num_tensors_skipped
-        self._tensor_bytes_skipped = bytes_skipped
-        # TODO(cais): Populate the "skipped" part if and only if
-        # num_tensors_skipped > 0.
-        self._update_status(
-            "Uploading %d tensors (%s) (Skipped %d tensors, %s)"
-            % (
-                num_tensors,
-                readable_bytes_string(bytes),
-                num_tensors_skipped,
-                readable_bytes_string(bytes_skipped),
-            )
+        return TensorsTracker(
+            self._stats,
+            self._update_status,
+            num_tensors,
+            num_tensors_skipped,
+            tensor_bytes,
+            tensor_bytes_skipped,
         )
 
-    def tensors_done(self):
-        pass
-
     def blob_tracker(self, blob_bytes):
-        return BlobTracker(self, blob_bytes)
+        return BlobTracker(self._stats, self._update_status, blob_bytes)
 
-    # def blob_start(self, blob_bytes):
-    #     pass
-    # #     self._num_blobs += 1
-    # #     self._blob_bytes += blob_bytes
-    # #     self._update_status(
-    # #         "Uploading binary object (%s)" % readable_bytes_string(blob_bytes)
-    # #     )
 
-    # def blob_done(self, is_uploaded):
-    #     pass
-    # #     if not is_uploaded:
-    # #         self._num_blobs_uploaded += 1
-    # #         self._blob_bytes_uploaded += blob_bytes_uploaded
+class ScalarsTracker(object):
+    def __init__(self, upload_stats, update_status, num_scalars):
+        """Constructor of ScalarsTracker.
+
+        Args:
+          upload_stats: An instance of `UploadStats` to be used to keep track
+            of uploaded blob and its byte size.
+          update_status: A callable for updating status message.
+          num_scalars: Number of scalars in the batch.
+        """
+        self._upload_stats = upload_stats
+        self._update_status = update_status
+        self._num_scalars = num_scalars
+
+    def __enter__(self):
+        self._update_status("Uploading %d scalars" % self._num_scalars)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        del exc_type, exc_val, exc_tb  # Unused.
+        self._upload_stats.add_scalars(self._num_scalars)
+
+
+class TensorsTracker(object):
+    def __init__(
+        self,
+        upload_stats,
+        update_status,
+        num_tensors,
+        num_tensors_skipped,
+        tensor_bytes,
+        tensor_bytes_skipped,
+    ):
+        """Constructor of ScalarsTracker.
+
+        Args:
+          upload_stats: An instance of `UploadStats` to be used to keep track
+            of uploaded blob and its byte size.
+          update_status: A callable for updating status message.
+          num_tensors: Total number of tensors in the batch.
+          num_tensors_skipped: Number of tensors skipped (a subset of
+            `num_tensors`).
+          tensor_bytes: Total byte size of the tensors in the batch.
+          tensor_bytes_skipped: Byte size of skipped tensors in the batch (a
+            subset of `tensor_bytes`).
+        """
+        self._upload_stats = upload_stats
+        self._update_status = update_status
+        self._num_tensors = num_tensors
+        self._num_tensors_skipped = num_tensors_skipped
+        self._tensor_bytes = tensor_bytes
+        self._tensor_bytes_skipped = tensor_bytes_skipped
+
+    def __enter__(self):
+        if self._num_tensors_skipped:
+            message = "Uploading %d tensors (%s) (Skipping %d tensors, %s)" % (
+                self._num_tensors - self._num_tensors_skipped,
+                readable_bytes_string(
+                    self._tensor_bytes - self._tensor_bytes_skipped
+                ),
+            )
+        else:
+            message = "Uploading %d tensors (%s)" % (
+                self._num_tensors,
+                readable_bytes_string(self._tensor_bytes),
+            )
+        self._update_status(message)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        del exc_type, exc_val, exc_tb  # Unused.
+        self._upload_stats.add_tensors(
+            self._num_tensors,
+            self._num_tensors_skipped,
+            self._tensor_bytes,
+            self._tensor_bytes_skipped,
+        )
 
 
 class BlobTracker(object):
-    def __init__(self, upload_tracker, blob_bytes):
-        self._upload_tracker = upload_tracker
+    def __init__(self, upload_stats, update_status, blob_bytes):
+        """Constructor of BlobTracker.
+
+        Args:
+          upload_stats: An instance of `UploadStats` to be used to keep track
+            of uploaded blob and its byte size.
+          update_status: A callable for updating status message.
+          blob_bytes: Total byte size of the blob being uploaded.
+        """
+        self._upload_stats = upload_stats
+        self._update_status = update_status
         self._blob_bytes = blob_bytes
 
     def __enter__(self):
-        self._upload_tracker._update_status(
+        self._update_status(
             "Uploading binary object (%s)"
             % readable_bytes_string(self._blob_bytes)
         )
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        del exc_type, exc_val, exc_tb  # Unuse.
-        pass
+        del exc_type, exc_val, exc_tb  # Unused.
 
     def mark_uploaded(self, is_uploaded):
-        pass
+        self._upload_stats.add_blob(
+            self._blob_bytes, is_skipped=(not is_uploaded)
+        )
