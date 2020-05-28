@@ -55,24 +55,67 @@ class UploadStats(object):
         self._plugin_names = set()
 
     def add_scalars(self, num_scalars):
+        """Add a batch of scalars.
+
+        Args:
+          num_scalars: Number of scalars uploaded in this batch.
+        """
         self._num_scalars += num_scalars
 
     def add_tensors(
-        self, num_tensors, num_tensors_skipped, num_bytes, num_bytes_skipped
+        self,
+        num_tensors,
+        num_tensors_skipped,
+        tensor_bytes,
+        tensor_bytes_skipped,
     ):
+        """Add a batch of tensors.
+
+        Args:
+          num_tensors: Number of tensors encountered in this batch, including
+            the ones skipped due to reasons such as large exceeding limit.
+          num_tensors: Number of tensors skipped. This describes a subset of
+            `num_tensors` and hence must be `<= num_tensors`.
+          tensor_bytes: Total byte size of tensors encountered in this batch,
+            including the skipped ones.
+          tensor_bytes_skipped: Total byte size of the tensors skipped due to
+            reasons such as size exceeding limit.
+        """
         assert num_tensors_skipped <= num_tensors
-        assert num_bytes_skipped <= num_bytes
+        assert tensor_bytes_skipped <= tensor_bytes
         self._num_tensors += num_tensors
         self._num_tensors_skipped += num_tensors_skipped
-        self._tensor_bytes += num_bytes
-        self._tensor_bytes_skipped = num_bytes_skipped
+        self._tensor_bytes += tensor_bytes
+        self._tensor_bytes_skipped = tensor_bytes_skipped
 
     def add_blob(self, blob_bytes, is_skipped):
+        """Add a blob.
+
+        Args:
+          blob_bytes: Byte size of the blob.
+          is_skipped: Whether the uploading of the blob is skipped due to
+            reasons such as size exceeding limit.
+        """
         self._num_blobs += 1
         self._blob_bytes += blob_bytes
         if is_skipped:
             self._num_blobs_skipped += 1
             self._blob_bytes_skipped += blob_bytes
+
+    def accumulate(self, stats):
+        """Accumulate another UploadStats instance into this instance.
+
+        Args:
+          stats: Another UploadStats instance to add to this instance.
+        """
+        self._num_scalars += stats.num_scalars
+        self._num_tensors += stats.num_tensors
+        self._num_tensors_skipped += stats.num_tensors_skipped
+        self._tensor_bytes += stats.tensor_bytes
+        self._tensor_bytes_skipped += stats.tensor_bytes_skipped
+        self._num_blobs += stats.num_blobs
+        self._blob_bytes += stats.blob_bytes
+        self._blob_bytes_skipped += stats.blob_bytes_skipped
 
     @property
     def num_scalars(self):
