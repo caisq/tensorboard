@@ -103,22 +103,6 @@ class UploadStats(object):
             self._num_blobs_skipped += 1
             self._blob_bytes_skipped += blob_bytes
 
-    def accumulate(self, stats):
-        """Accumulate another UploadStats instance into this instance.
-
-        Args:
-          stats: Another UploadStats instance to add to this instance.
-        """
-        self._num_scalars += stats.num_scalars
-        self._num_tensors += stats.num_tensors
-        self._num_tensors_skipped += stats.num_tensors_skipped
-        self._tensor_bytes += stats.tensor_bytes
-        self._tensor_bytes_skipped += stats.tensor_bytes_skipped
-        self._num_blobs += stats.num_blobs
-        self._blob_bytes += stats.blob_bytes
-        self._blob_bytes_skipped += stats.blob_bytes_skipped
-        self._plugin_names.update(stats.plugin_names)
-
     def add_plugin(self, plugin_name):
         """Add a plugin.
 
@@ -170,15 +154,35 @@ class UploadStats(object):
     @property
     def uploaded_summary(self):
         """Get a summary string for actually-uploaded data."""
-        return "%d scalars, %d tensors (%s), %d binary objects (%s)" % (
-            self._num_scalars,
-            self._num_tensors - self._num_tensors_skipped,
-            readable_bytes_string(
-                self._tensor_bytes - self._tensor_bytes_skipped
-            ),
-            self._num_blobs - self._num_blobs_skipped,
-            readable_bytes_string(self._blob_bytes - self._blob_bytes_skipped),
+        string_pieces = []
+        string_pieces.append("%d scalars" % self._num_scalars)
+        uploaded_tensor_count = self._num_tensors - self._num_tensors_skipped
+        uploaded_tensor_bytes = self._tensor_bytes - self._tensor_bytes_skipped
+        string_pieces.append(
+            "0 tensors"
+            if not uploaded_tensor_count
+            else (
+                "%d tensors (%s)"
+                % (
+                    uploaded_tensor_count,
+                    readable_bytes_string(uploaded_tensor_bytes),
+                )
+            )
         )
+        uploaded_blob_count = self._num_blobs - self._num_blobs_skipped
+        uploaded_blob_bytes = self._blob_bytes - self._blob_bytes_skipped
+        string_pieces.append(
+            "0 binary objects"
+            if not uploaded_blob_count
+            else (
+                "%d binary objects (%s)"
+                % (
+                    uploaded_blob_count,
+                    readable_bytes_string(uploaded_blob_bytes),
+                )
+            )
+        )
+        return ", ".join(string_pieces)
 
     @property
     def skipped_any(self):
@@ -197,9 +201,9 @@ class UploadStats(object):
                     readable_bytes_string(self._tensor_bytes_skipped),
                 )
             )
-        if self._num_tensors_skipped:
+        if self._num_blobs_skipped:
             string_pieces.append(
-                "%d blobs (%s)"
+                "%d binary objects (%s)"
                 % (
                     self._num_blobs_skipped,
                     readable_bytes_string(self._blob_bytes_skipped),
@@ -208,17 +212,27 @@ class UploadStats(object):
         return ", ".join(string_pieces)
 
 
+STYLE_RESET = "\033[0m"
+STYLE_BOLD = "\033[1m"
+STYLE_GREEN = "\033[32m"
+STYLE_YELLOW = "\033[33m"
+STYLE_DARKGRAY = "\033[90m"
+
+
 class UploadTracker(object):
     """Tracker for uploader progress and status."""
 
     def __init__(self):
-        self._cumulative_stats = UploadStats()
+        self._stats = UploadStats()
         self._dot_counter = 0
-        self._progress_bar = tqdm.tqdm(
-            self._dummy_generator(), bar_format="{desc}", position=0
-        )
-        self._cumulative_progress_bar = tqdm.tqdm(
+        self._cumulative_uploaded_bar = tqdm.tqdm(
             self._dummy_generator(), bar_format="{desc}", position=1
+        )
+        self._cumulative_skipped_bar = tqdm.tqdm(
+            self._dummy_generator(), bar_format="{desc}", position=2
+        )
+        self._uploading_bar = tqdm.tqdm(
+            self._dummy_generator(), bar_format="{desc}", position=3
         )
 
     def _dummy_generator(self):
@@ -226,40 +240,47 @@ class UploadTracker(object):
             # Yield an arbitrary value 0: The progress bar is indefinite.
             yield 0
 
-    def send_start(self):
-        self._stats = UploadStats()
+    def _update_uploading_status(self, message, color_code=STYLE_GREEN):
+        message += "." * 3
+        self._uploading_bar.set_description_str(
+            color_code + message + STYLE_RESET
+        )
+        self._uploading_bar.update()
 
-    def _update_status(self, message):
-        if message:
-            self._dot_counter += 1
-            message += "." * (self._dot_counter % 3 + 1)
-        self._progress_bar.set_description_str("\033[32m" + message + "\033[0m")
-        self._progress_bar.update()
-
-    def _update_cumulative_status(self, message):
-        self._cumulative_progress_bar.set_description_str(message)
-        self._cumulative_progress_bar.update()
-
-    def send_done(self):
-        self._cumulative_stats.accumulate(self._stats)
-        if (
-            self._stats.num_scalars
-            or self._stats.num_tensors
-            or self._stats.num_blobs
-        ):
-            if self._progress_bar:
-                self._update_status("")
-            self._update_cumulative_status(
-                "[%s] Uploaded %s."
-                % (
-                    readable_time_string(),
-                    self._stats.uploaded_summary,
-                    # self._cumulative_stats.uploaded_summary,
-                )
+    def _update_cumulative_status(self):
+        uploaded_message = "%s[%s]%s Uploaded %s" % (
+            STYLE_BOLD,
+            readable_time_string(),
+            STYLE_RESET,
+            self._stats.uploaded_summary,
+        )
+        self._cumulative_uploaded_bar.set_description_str(uploaded_message)
+        self._cumulative_uploaded_bar.update()
+        if self._stats.skipped_any:
+            skipped_message = "%s%s Skipped %s%s" % (
+                STYLE_DARKGRAY,
+                " " * 21,
+                self._stats.skipped_summary,
+                STYLE_RESET,
             )
+            self._cumulative_skipped_bar.set_description_str(skipped_message)
+            self._cumulative_skipped_bar.update()
+        # TODO(cais): Add summary of what plugins have been involved, once it's
+        # clear how to get canonical plugin names.
 
     def add_plugin_name(self, plugin_name):
         self._stats.add_plugin(plugin_name)
+
+    @contextlib.contextmanager
+    def send_tracker(self):
+        """Create a context manager for a round of data sending."""
+        self._update_uploading_status("Data upload starting")
+        try:
+            yield
+        finally:
+            self._update_uploading_status(
+                "Listening for new data in logdir", color_code=STYLE_YELLOW
+            )
 
     @contextlib.contextmanager
     def scalars_tracker(self, num_scalars):
@@ -268,11 +289,12 @@ class UploadTracker(object):
         Args:
           num_scalars: Number of scalars in the batch.
         """
-        self._update_status("Uploading %d scalars" % num_scalars)
+        self._update_uploading_status("Uploading %d scalars" % num_scalars)
         try:
             yield
         finally:
             self._stats.add_scalars(num_scalars)
+            self._update_cumulative_status()
 
     @contextlib.contextmanager
     def tensors_tracker(
@@ -296,12 +318,15 @@ class UploadTracker(object):
             message = "Uploading %d tensors (%s) (Skipping %d tensors, %s)" % (
                 num_tensors - num_tensors_skipped,
                 readable_bytes_string(tensor_bytes - tensor_bytes_skipped),
+                num_tensors_skipped,
+                readable_bytes_string(tensor_bytes_skipped),
             )
         else:
             message = "Uploading %d tensors (%s)" % (
                 num_tensors,
                 readable_bytes_string(tensor_bytes),
             )
+        self._update_uploading_status(message)
         try:
             yield
         finally:
@@ -311,13 +336,10 @@ class UploadTracker(object):
                 tensor_bytes,
                 tensor_bytes_skipped,
             )
+            self._update_cumulative_status()
 
+    @contextlib.contextmanager
     def blob_tracker(self, blob_bytes):
-        return BlobTracker(self._stats, self._update_status, blob_bytes)
-
-
-class BlobTracker(object):
-    def __init__(self, upload_stats, update_status, blob_bytes):
         """Constructor of BlobTracker.
 
         Args:
@@ -326,19 +348,19 @@ class BlobTracker(object):
           update_status: A callable for updating status message.
           blob_bytes: Total byte size of the blob being uploaded.
         """
-        self._upload_stats = upload_stats
-        self._update_status = update_status
-        self._blob_bytes = blob_bytes
-
-    def __enter__(self):
-        self._update_status(
-            "Uploading binary object (%s)"
-            % readable_bytes_string(self._blob_bytes)
+        self._update_uploading_status(
+            "Uploading binary object (%s)" % readable_bytes_string(blob_bytes)
         )
-        return self
+        try:
+            yield _BlobTracker(self._stats, blob_bytes)
+        finally:
+            self._update_cumulative_status()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        del exc_type, exc_val, exc_tb  # Unused.
+
+class _BlobTracker(object):
+    def __init__(self, upload_stats, blob_bytes):
+        self._upload_stats = upload_stats
+        self._blob_bytes = blob_bytes
 
     def mark_uploaded(self, is_uploaded):
         self._upload_stats.add_blob(

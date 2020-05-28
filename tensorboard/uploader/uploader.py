@@ -213,9 +213,8 @@ class TensorBoardUploader(object):
         logger.info("Logdir sync took %.3f seconds", sync_duration_secs)
 
         run_to_events = self._logdir_loader.get_run_events()
-        self._tracker.send_start()
-        self._request_sender.send_requests(run_to_events)
-        self._tracker.send_done()  # TODO(cais): Remove this call.
+        with self._tracker.send_tracker():
+            self._request_sender.send_requests(run_to_events)
 
 
 def update_experiment_metadata(
