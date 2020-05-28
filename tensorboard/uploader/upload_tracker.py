@@ -166,6 +166,46 @@ class UploadStats(object):
     def plugin_names(self):
         return self._plugin_names
 
+    @property
+    def uploaded_summary(self):
+        """Get a summary string for actually-uploaded data."""
+        return "%d scalars, %d tensors (%s), %d binary objects (%s)" % (
+            self._num_scalars,
+            self._num_tensors - self._num_tensors_skipped,
+            readable_bytes_string(
+                self._tensor_bytes - self._tensor_bytes_skipped
+            ),
+            self._num_blobs - self._num_blobs_skipped,
+            readable_bytes_string(self._blob_bytes - self._blob_bytes_skipped),
+        )
+
+    @property
+    def skipped_any(self):
+        """Whether any data was skipped."""
+        return self._num_tensors_skipped or self._num_blobs_skipped
+
+    @property
+    def skipped_summary(self):
+        """Get a summary string for skipped data."""
+        string_pieces = []
+        if self._num_tensors_skipped:
+            string_pieces.append(
+                "%d tensors (%s)"
+                % (
+                    self._num_tensors_skipped,
+                    readable_bytes_string(self._tensor_bytes_skipped),
+                )
+            )
+        if self._num_tensors_skipped:
+            string_pieces.append(
+                "%d blobs (%s)"
+                % (
+                    self._num_blobs_skipped,
+                    readable_bytes_string(self._blob_bytes_skipped),
+                )
+            )
+        return ", ".join(string_pieces)
+
 
 class UploadTracker(object):
     """Tracker for uploader progress and status."""
@@ -173,6 +213,12 @@ class UploadTracker(object):
     def __init__(self):
         self._cumulative_stats = UploadStats()
         self._dot_counter = 0
+        self._progress_bar = tqdm.tqdm(
+            self._dummy_generator(), bar_format="{desc}", position=0
+        )
+        self._cumulative_progress_bar = tqdm.tqdm(
+            self._dummy_generator(), bar_format="{desc}", position=1
+        )
 
     def _dummy_generator(self):
         while True:
@@ -181,18 +227,17 @@ class UploadTracker(object):
 
     def send_start(self):
         self._stats = UploadStats()
-        self._progress_bar = None
 
     def _update_status(self, message):
         if message:
             self._dot_counter += 1
             message += "." * (self._dot_counter % 3 + 1)
-        if not self._progress_bar:
-            self._progress_bar = tqdm.tqdm(
-                self._dummy_generator(), bar_format="{desc}"
-            )
         self._progress_bar.set_description_str("\033[32m" + message + "\033[0m")
         self._progress_bar.update()
+
+    def _update_cumulative_status(self, message):
+        self._cumulative_progress_bar.set_description_str(message)
+        self._cumulative_progress_bar.update()
 
     def send_done(self):
         self._cumulative_stats.accumulate(self._stats)
@@ -203,34 +248,15 @@ class UploadTracker(object):
         ):
             if self._progress_bar:
                 self._update_status("")
-                self._progress_bar.close()
-            # TODO(cais): Only populate the existing data types.
-            # TODO(cais0): Print skipped bytes if non-zero.
-            sys.stdout.write(
-                "[%s] Uploaded %d scalars, %d tensors (%s), %d binary objects (%s)\n"
-                "    Plugins: %s\n"
-                "    Cumulative: %d scalars, %d tensors (%s), %d binary objects (%s)\n"
+            self._update_cumulative_status(
+                "[%s] Uploaded %s. Cumulative: %s"
                 % (
                     readable_time_string(),
-                    self._stats.num_scalars,
-                    self._stats.num_tensors,
-                    readable_bytes_string(self._stats.tensor_bytes),
-                    self._stats.num_blobs,
-                    readable_bytes_string(
-                        self._stats.blob_bytes - self._stats.blob_bytes_skipped
-                    ),
-                    ", ".join(self._stats.plugin_names),
-                    self._cumulative_stats.num_scalars,
-                    self._cumulative_stats.num_tensors,
-                    readable_bytes_string(self._cumulative_stats.tensor_bytes),
-                    self._cumulative_stats.num_blobs,
-                    readable_bytes_string(
-                        self._cumulative_stats.blob_bytes
-                        - self._cumulative_stats.blob_bytes_skipped
-                    ),
+                    self._stats.uploaded_summary,
+                    self._cumulative_stats.uploaded_summary,
                 )
             )
-            sys.stdout.flush()
+            # sys.stdout.flush()
 
     def add_plugin_name(self, plugin_name):
         self._stats.add_plugin(plugin_name)

@@ -111,6 +111,62 @@ class UploadStatsTest(tb_test.TestCase):
         stats.add_plugin("histograms")
         self.assertEqual(stats.plugin_names, set(["histograms", "scalars"]))
 
+    def testUploadedSummary(self):
+        stats = upload_tracker.UploadStats()
+        stats.add_scalars(1234)
+        stats.add_tensors(
+            num_tensors=50,
+            num_tensors_skipped=10,
+            tensor_bytes=2000,
+            tensor_bytes_skipped=1800,
+        )
+        stats.add_blob(blob_bytes=1000, is_skipped=False)
+        stats.add_blob(blob_bytes=2000, is_skipped=True)
+        self.assertEqual(
+            stats.uploaded_summary,
+            "1234 scalars, 40 tensors (200 B), 1 binary objects (1000 B)",
+        )
+
+    def testSkippedAnyReturnsFalse(self):
+        stats = upload_tracker.UploadStats()
+        stats.add_scalars(1234)
+        stats.add_tensors(
+            num_tensors=50,
+            num_tensors_skipped=0,
+            tensor_bytes=2000,
+            tensor_bytes_skipped=0,
+        )
+        stats.add_blob(blob_bytes=1000, is_skipped=False)
+        self.assertFalse(stats.skipped_any)
+
+    def testSkippedAnyReturnsTrue(self):
+        stats = upload_tracker.UploadStats()
+        stats.add_scalars(1234)
+        stats.add_tensors(
+            num_tensors=50,
+            num_tensors_skipped=10,
+            tensor_bytes=2000,
+            tensor_bytes_skipped=1800,
+        )
+        stats.add_blob(blob_bytes=1000, is_skipped=False)
+        stats.add_blob(blob_bytes=2000, is_skipped=True)
+        self.assertTrue(stats.skipped_any)
+
+    def testSkippedSummary(self):
+        stats = upload_tracker.UploadStats()
+        stats.add_scalars(1234)
+        stats.add_tensors(
+            num_tensors=50,
+            num_tensors_skipped=10,
+            tensor_bytes=2000,
+            tensor_bytes_skipped=1800,
+        )
+        stats.add_blob(blob_bytes=1000, is_skipped=False)
+        stats.add_blob(blob_bytes=2000, is_skipped=True)
+        self.assertEqual(
+            stats.skipped_summary, "10 tensors (1.8 kB), 1 blob (2.0 kB)"
+        )
+
     def testAccumulate(self):
         stats_1 = upload_tracker.UploadStats()
         stats_1.add_scalars(10)
