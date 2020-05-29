@@ -17,6 +17,7 @@ limitations under the License.
  */
 import {CommonModule} from '@angular/common';
 import {TestBed} from '@angular/core/testing';
+import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 import {By} from '@angular/platform-browser';
 
 import {Store} from '@ngrx/store';
@@ -27,6 +28,7 @@ import {
   executionScrollLeft,
   executionScrollRight,
   executionScrollToIndex,
+  setStickToBottommostFrameInFocusedFile,
   sourceLineFocused,
 } from './actions';
 import {DebuggerComponent} from './debugger_component';
@@ -42,6 +44,7 @@ import {
   getCodeLocationOrigin,
   getFocusedSourceLineSpec,
   getFocusedStackFrames,
+  getStickToBottommostFrameInFocusedFile,
 } from './store';
 import {
   createAlertsState,
@@ -50,7 +53,6 @@ import {
   createDebuggerExecutionsState,
   createDebuggerStateWithLoadedExecutionDigests,
   createTestExecutionData,
-  createTestGraphOpInfo,
   createTestStackFrame,
 } from './testing';
 import {AlertsModule} from './views/alerts/alerts_module';
@@ -813,6 +815,47 @@ describe('Debugger Container', () => {
             lineno: stackFrame1[2],
           },
         })
+      );
+    });
+
+    for (const stickToValue of [false, true]) {
+      it(`sets stick-to-bottommost-frame slide toggle: value=${stickToValue}`, () => {
+        const fixture = TestBed.createComponent(StackTraceContainer);
+        store.overrideSelector(
+          getStickToBottommostFrameInFocusedFile,
+          stickToValue
+        );
+        fixture.detectChanges();
+
+        const stickToBottommostElement = fixture.debugElement.query(
+          By.css('.stick-to-bottommost-frame')
+        );
+        expect(
+          stickToBottommostElement.nativeElement.getAttribute(
+            'ng-reflect-checked'
+          )
+        ).toBe(stickToValue ? 'true' : 'false');
+      });
+    }
+
+    it('changing stick-to-bottommost-frame slide toggle dispatches action', () => {
+      const fixture = TestBed.createComponent(StackTraceContainer);
+      const stickToBottommostElement = fixture.debugElement.query(
+        By.css('.stick-to-bottommost-frame')
+      );
+      stickToBottommostElement.triggerEventHandler('change', {
+        checked: true,
+      } as MatSlideToggleChange);
+      fixture.detectChanges();
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        setStickToBottommostFrameInFocusedFile({value: true})
+      );
+      stickToBottommostElement.triggerEventHandler('change', {
+        checked: false,
+      } as MatSlideToggleChange);
+      fixture.detectChanges();
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        setStickToBottommostFrameInFocusedFile({value: false})
       );
     });
   });

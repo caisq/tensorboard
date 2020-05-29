@@ -21,13 +21,14 @@ limitations under the License.
       Stack Trace
     </span>
 
-    <button
-      mat-button
-      (click)="toggleTopmostFrameInFile()"
-      title="Stick to the topmost frame in file"
+    <mat-slide-toggle
+      class="stick-to-bottommost-frame"
+      [checked]="stickToBottommostFrameInFocusedFile"
+      (change)="onToggleBottommostFrameInFile.emit($event.checked)"
     >
-      ⤓
-    </button>
+      Stick to bottommost frame in file.
+    </mat-slide-toggle>
+    <!-- TODO(cais): Add unit test. -->
     <!-- TODO(cais): Adjust layout. -->
 
     <div

@@ -30,11 +30,11 @@ export interface StackFrameForDisplay {
   // being viewed in the source code viewer). If this field is `true`,
   // `belongsToFocusedFile` must also be `true`.
   focused: boolean;
-  // Is this stack frame the topmost in the focused file.
-  // N.B.: Python stack frames are printed from bottommost to topmost by
-  // default, a "topmost" stack frame is actually the one that appears
-  // the last in a typical stack trace printed from Python.
-  topmostInFocusedFile: boolean;
+  // Whether this frame should be automatically focused on even though the
+  // user may have focused on a different frame in the same file.
+  // This is applicable only if the `stickToBottommostFrameInFocusedFile` is
+  // `true` in the ngrx store.
+  autoFocus: boolean;
 }
 
 @Component({
@@ -60,6 +60,9 @@ export class StackTraceComponent {
   executionIndex!: number | null;
 
   @Input()
+  stickToBottommostFrameInFocusedFile!: boolean;
+
+  @Input()
   stackFramesForDisplay: StackFrameForDisplay[] | null = null;
 
   @Output()
@@ -69,9 +72,8 @@ export class StackTraceComponent {
     lineno: number;
   }>();
 
-  toggleTopmostFrameInFile() {
-    console.log('toggleTopmostFrameInFile():'); // DEBUG
-  }
+  @Output()
+  onToggleBottommostFrameInFile = new EventEmitter<boolean>();
 
   CodeLocationType = CodeLocationType;
 }

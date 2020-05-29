@@ -14,18 +14,41 @@ limitations under the License.
 ==============================================================================*/
 import {Component} from '@angular/core';
 import {createSelector, select, Store} from '@ngrx/store';
+import {tap} from 'rxjs/operators';
 
-import {CodeLocationType, StackFrame, State} from '../../store/debugger_types';
+import {
+  CodeLocationType,
+  SourceLineSpec,
+  StackFrame,
+  State,
+} from '../../store/debugger_types';
 
-import {sourceLineFocused} from '../../actions';
+import {
+  sourceLineFocused,
+  setStickToBottommostFrameInFocusedFile,
+} from '../../actions';
 import {
   getCodeLocationOrigin,
   getFocusedSourceLineSpec,
   getFocusedStackFrames,
+  getStickToBottommostFrameInFocusedFile,
 } from '../../store';
 import {StackFrameForDisplay} from './stack_trace_component';
 
 /** @typehack */ import * as _typeHackRxjs from 'rxjs';
+
+function sourceLineSpecEquals(
+  spec1: SourceLineSpec,
+  host_name: string,
+  file_path: string,
+  lineno: number
+) {
+  return (
+    spec1.host_name === host_name &&
+    spec1.file_path === file_path &&
+    spec1.lineno === lineno
+  );
+}
 
 @Component({
   selector: 'tf-debugger-v2-stack-trace',
@@ -35,8 +58,12 @@ import {StackFrameForDisplay} from './stack_trace_component';
       [opType]="opType$ | async"
       [opName]="opName$ | async"
       [executionIndex]="executionIndex$ | async"
+      [stickToBottommostFrameInFocusedFile]="
+        stickToBottommostFrameInFocusedFile$ | async
+      "
       [stackFramesForDisplay]="stackFramesForDisplay$ | async"
       (onSourceLineClicked)="onSourceLineClicked($event)"
+      (onToggleBottommostFrameInFile)="onToggleBottommostFrameInFile($event)"
     ></stack-trace-component>
   `,
 })
@@ -97,18 +124,27 @@ export class StackTraceContainer {
     )
   );
 
+  readonly stickToBottommostFrameInFocusedFile$ = this.store.pipe(
+    select(getStickToBottommostFrameInFocusedFile)
+  ); // TODO(cais): Use or delete.
+
   readonly stackFramesForDisplay$ = this.store.pipe(
     select(
       createSelector(
         getFocusedStackFrames,
         getFocusedSourceLineSpec,
-        (stackFrames, focusedSourceLineSpec) => {
+        getStickToBottommostFrameInFocusedFile,
+        (
+          stackFrames,
+          focusedSourceLineSpec,
+          stickToBottommostFrameInFocusedFile
+        ): StackFrameForDisplay[] | null => {
           if (stackFrames === null) {
             return null;
           }
           const output: StackFrameForDisplay[] = [];
-          // 1st pass: Find the stackFrame that is the topmost in the focused file.
-          let topmostFrameInFocusedFile: StackFrame | null = null;
+          // 1st pass: Find the stackFrame that is the bottom in the focused file.
+          let bottommostFrameInFocusedFile: StackFrame | null = null;
           if (focusedSourceLineSpec !== null) {
             for (const stackFrame of stackFrames) {
               const [host_name, file_path] = stackFrame;
@@ -116,7 +152,7 @@ export class StackTraceContainer {
                 host_name === focusedSourceLineSpec.host_name &&
                 file_path === focusedSourceLineSpec.file_path
               ) {
-                topmostFrameInFocusedFile = stackFrame;
+                bottommostFrameInFocusedFile = stackFrame;
               }
             }
           }
@@ -130,7 +166,7 @@ export class StackTraceContainer {
               file_path === focusedSourceLineSpec.file_path;
             const focused =
               belongsToFocusedFile && lineno === focusedSourceLineSpec!.lineno;
-            output.push({
+            const stackFrameForDisplay: StackFrameForDisplay = {
               host_name,
               file_path,
               concise_file_path,
@@ -138,13 +174,38 @@ export class StackTraceContainer {
               function_name,
               belongsToFocusedFile,
               focused,
-              topmostInFocusedFile: stackFrame === topmostFrameInFocusedFile,
-            });
+              autoFocus: false,
+            };
+            if (
+              stickToBottommostFrameInFocusedFile &&
+              stackFrame === bottommostFrameInFocusedFile &&
+              focusedSourceLineSpec !== null &&
+              !sourceLineSpecEquals(
+                focusedSourceLineSpec,
+                host_name,
+                file_path,
+                lineno
+              )
+            ) {
+              stackFrameForDisplay.autoFocus = true; // TODO(cais): Add unit test.
+            }
+            output.push(stackFrameForDisplay);
           }
           return output;
         }
       )
-    )
+    ),
+    tap((stackFramesForDisplay: StackFrameForDisplay[] | null) => {
+      if (stackFramesForDisplay === null) {
+        return;
+      }
+      for (const stackFrame of stackFramesForDisplay) {
+        if (stackFrame.autoFocus) {
+          this.store.dispatch(sourceLineFocused({sourceLineSpec: stackFrame}));
+          return;
+        }
+      }
+    })
   );
 
   constructor(private readonly store: Store<State>) {}
@@ -156,4 +217,9 @@ export class StackTraceContainer {
   }) {
     this.store.dispatch(sourceLineFocused({sourceLineSpec: args}));
   }
+
+  onToggleBottommostFrameInFile(value: boolean) {
+    console.log('In onToggleBottommostFrameInFile'); // DEBUG
+    this.store.dispatch(setStickToBottommostFrameInFocusedFile({value}));
+  } // TODO(cais): Add unit test.
 }

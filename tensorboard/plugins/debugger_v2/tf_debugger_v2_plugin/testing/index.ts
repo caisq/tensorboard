@@ -156,6 +156,7 @@ export function createDebuggerState(
     graphExecutions: createDebuggerGraphExecutionsState(),
     graphs: createDebuggerGraphsState(),
     stackFrames: {},
+    stickToBottommostFrameInFocusedFile: false,
     codeLocationFocusType: null,
     sourceCode: {
       sourceFileListLoaded: {
