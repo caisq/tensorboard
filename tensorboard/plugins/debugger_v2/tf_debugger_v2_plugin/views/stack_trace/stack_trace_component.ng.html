@@ -18,7 +18,9 @@ limitations under the License.
 <div class="stack-trace-container">
   <div class="stack-trace-header">
     <span class="stack-trace-title">
-      Stack Trace
+      <div class="stack-trace-title-text">
+        Stack Trace
+      </div>
     </span>
 
     <mat-slide-toggle
@@ -26,10 +28,8 @@ limitations under the License.
       [checked]="stickToBottommostFrameInFocusedFile"
       (change)="onToggleBottommostFrameInFile.emit($event.checked)"
     >
-      Stick to bottommost frame in file.
+      Stick to bottommost frame in file
     </mat-slide-toggle>
-    <!-- TODO(cais): Add unit test. -->
-    <!-- TODO(cais): Adjust layout. -->
 
     <div
       *ngIf="codeLocationType !== null; else noStackTrace"

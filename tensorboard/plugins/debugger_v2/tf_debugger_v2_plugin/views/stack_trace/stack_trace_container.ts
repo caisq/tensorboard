@@ -37,17 +37,43 @@ import {StackFrameForDisplay} from './stack_trace_component';
 
 /** @typehack */ import * as _typeHackRxjs from 'rxjs';
 
-function sourceLineSpecEquals(
-  spec1: SourceLineSpec,
-  host_name: string,
-  file_path: string,
-  lineno: number
+function sourceLineSpecEqualsStackFrame(
+  spec: SourceLineSpec,
+  stackFrame: StackFrame
 ) {
+  const [host_name, file_path, lineno] = stackFrame;
   return (
-    spec1.host_name === host_name &&
-    spec1.file_path === file_path &&
-    spec1.lineno === lineno
+    spec.host_name === host_name &&
+    spec.file_path === file_path &&
+    spec.lineno === lineno
   );
+}
+
+/**
+ * Helper method for finding the bottommost stack frame in a stack trace.
+ * @param stackFrames Stack frames of the stack trace to look in.
+ * @param focusedSourceLineSpec The currently focuse stack frame.
+ * @returns The stack frame that is in the same file as `focusedSourceLineSpec`,
+ *   but at the bottommost location.
+ */
+function findBottommostStackFrameInFocusedFile(
+  stackFrames: StackFrame[],
+  focusedSourceLineSpec: SourceLineSpec | null
+): StackFrame | null {
+  if (focusedSourceLineSpec === null) {
+    return null;
+  }
+  let bottommostStackFrame: StackFrame | null = null;
+  for (const stackFrame of stackFrames) {
+    const [host_name, file_path] = stackFrame;
+    if (
+      host_name === focusedSourceLineSpec.host_name &&
+      file_path === focusedSourceLineSpec.file_path
+    ) {
+      bottommostStackFrame = stackFrame;
+    }
+  }
+  return bottommostStackFrame;
 }
 
 @Component({
@@ -143,19 +169,12 @@ export class StackTraceContainer {
             return null;
           }
           const output: StackFrameForDisplay[] = [];
-          // 1st pass: Find the stackFrame that is the bottom in the focused file.
-          let bottommostFrameInFocusedFile: StackFrame | null = null;
-          if (focusedSourceLineSpec !== null) {
-            for (const stackFrame of stackFrames) {
-              const [host_name, file_path] = stackFrame;
-              if (
-                host_name === focusedSourceLineSpec.host_name &&
-                file_path === focusedSourceLineSpec.file_path
-              ) {
-                bottommostFrameInFocusedFile = stackFrame;
-              }
-            }
-          }
+          // Find the stackFrame that is the bottom in the focused file.
+          const bottommostFrameInFocusedFile = findBottommostStackFrameInFocusedFile(
+            stackFrames,
+            focusedSourceLineSpec
+          );
+          // Correctly label all the stack frames for display.
           for (const stackFrame of stackFrames) {
             const [host_name, file_path, lineno, function_name] = stackFrame;
             const pathItems = file_path.split('/');
@@ -180,14 +199,9 @@ export class StackTraceContainer {
               stickToBottommostFrameInFocusedFile &&
               stackFrame === bottommostFrameInFocusedFile &&
               focusedSourceLineSpec !== null &&
-              !sourceLineSpecEquals(
-                focusedSourceLineSpec,
-                host_name,
-                file_path,
-                lineno
-              )
+              !sourceLineSpecEqualsStackFrame(focusedSourceLineSpec, stackFrame)
             ) {
-              stackFrameForDisplay.autoFocus = true; // TODO(cais): Add unit test.
+              stackFrameForDisplay.autoFocus = true;
             }
             output.push(stackFrameForDisplay);
           }
@@ -201,8 +215,18 @@ export class StackTraceContainer {
       }
       for (const stackFrame of stackFramesForDisplay) {
         if (stackFrame.autoFocus) {
-          this.store.dispatch(sourceLineFocused({sourceLineSpec: stackFrame}));
-          return;
+          this.store.dispatch(
+            sourceLineFocused({
+              sourceLineSpec: {
+                host_name: stackFrame.host_name,
+                file_path: stackFrame.file_path,
+                lineno: stackFrame.lineno,
+              },
+            })
+          );
+          // TODO(cais): In addition to dispatching the action, also
+          // scroll the corresponding frame into the view automatically.
+          break;
         }
       }
     })
@@ -219,7 +243,6 @@ export class StackTraceContainer {
   }
 
   onToggleBottommostFrameInFile(value: boolean) {
-    console.log('In onToggleBottommostFrameInFile'); // DEBUG
     this.store.dispatch(setStickToBottommostFrameInFocusedFile({value}));
-  } // TODO(cais): Add unit test.
+  }
 }
