@@ -20,6 +20,8 @@ import {
   AlertsByIndex,
   Alerts,
   AlertType,
+  CodeLocationExecutionOrigin,
+  CodeLocationGraphOpCreationOrigin,
   CodeLocationType,
   DataLoadState,
   DEBUGGER_FEATURE_KEY,
@@ -462,10 +464,46 @@ export const getFocusedExecutionData = createSelector(
   }
 );
 
-export const getCodeLocationFocusType = createSelector(
+/**
+ * Get information regarding the op that's the origin of the focused
+ * code location (stack trace).
+ * This selector covers both eager execution and graph-op creation.
+ */
+export const getCodeLocationOrigin = createSelector(
   selectDebuggerState,
-  (state: DebuggerState): CodeLocationType | null => {
-    return state.codeLocationFocusType;
+  getFocusedExecutionIndex,
+  getFocusedExecutionData,
+  getFocusedGraphOpInfo,
+  (
+    state: DebuggerState,
+    executionIndex: number | null,
+    executionData: Execution | null,
+    graphOpInfo: GraphOpInfo | null
+  ): CodeLocationExecutionOrigin | CodeLocationGraphOpCreationOrigin | null => {
+    const {codeLocationFocusType} = state;
+    if (codeLocationFocusType === null) {
+      return null;
+    }
+    if (codeLocationFocusType === CodeLocationType.EXECUTION) {
+      if (executionIndex === null || executionData === null) {
+        return null;
+      }
+      return {
+        codeLocationType: CodeLocationType.EXECUTION,
+        opType: executionData.op_type,
+        executionIndex,
+      };
+    } else {
+      // This is CodeLocationType.GRAPH_OP_CREATION.
+      if (graphOpInfo === null) {
+        return null;
+      }
+      return {
+        codeLocationType: CodeLocationType.GRAPH_OP_CREATION,
+        opType: graphOpInfo.op_type,
+        opName: graphOpInfo.op_name,
+      };
+    }
   }
 );
 

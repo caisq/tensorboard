@@ -15,13 +15,11 @@ limitations under the License.
 import {Component} from '@angular/core';
 import {createSelector, select, Store} from '@ngrx/store';
 
-import {CodeLocationType, State, StackFrame} from '../../store/debugger_types';
+import {CodeLocationType, StackFrame, State} from '../../store/debugger_types';
 
 import {sourceLineFocused} from '../../actions';
 import {
-  getCodeLocationFocusType,
-  getFocusedExecutionData,
-  getFocusedGraphOpInfo,
+  getCodeLocationOrigin,
   getFocusedSourceLineSpec,
   getFocusedStackFrames,
 } from '../../store';
@@ -33,44 +31,67 @@ import {StackFrameForDisplay} from './stack_trace_component';
   selector: 'tf-debugger-v2-stack-trace',
   template: `
     <stack-trace-component
-      [stackTraceType]="stackTraceType$ | async"
-      [originOpInfo]="originOpInfo$ | async"
+      [codeLocationType]="codeLocationType$ | async"
+      [opType]="opType$ | async"
+      [opName]="opName$ | async"
+      [executionIndex]="executionIndex$ | async"
       [stackFramesForDisplay]="stackFramesForDisplay$ | async"
       (onSourceLineClicked)="onSourceLineClicked($event)"
     ></stack-trace-component>
   `,
 })
 export class StackTraceContainer {
-  readonly stackTraceType$ = this.store.pipe(select(getCodeLocationFocusType));
-
-  readonly originOpInfo$ = this.store.pipe(
+  readonly codeLocationType$ = this.store.pipe(
     select(
       createSelector(
-        getCodeLocationFocusType,
-        getFocusedExecutionData,
-        getFocusedGraphOpInfo,
-        (codeLocationFocusType, executionData, graphOpInfo) => {
-          if (codeLocationFocusType === null) {
+        getCodeLocationOrigin,
+        (originInfo): CodeLocationType | null => {
+          return originInfo === null ? null : originInfo.codeLocationType;
+        }
+      )
+    )
+  );
+
+  readonly opType$ = this.store.pipe(
+    select(
+      createSelector(
+        getCodeLocationOrigin,
+        (originInfo): string | null => {
+          return originInfo === null ? null : originInfo.opType;
+        }
+      )
+    )
+  );
+
+  readonly opName$ = this.store.pipe(
+    select(
+      createSelector(
+        getCodeLocationOrigin,
+        (originInfo): string | null => {
+          if (
+            originInfo === null ||
+            originInfo.codeLocationType !== CodeLocationType.GRAPH_OP_CREATION
+          ) {
             return null;
           }
-          if (codeLocationFocusType === CodeLocationType.EXECUTION) {
-            if (executionData === null) {
-              return null;
-            }
-            return {
-              opType: executionData.op_type,
-              opName: null,
-            };
-          } else {
-            // This is CodeLocationType.GRAPH_OP_CREATION.
-            if (graphOpInfo === null) {
-              return null;
-            }
-            return {
-              opType: graphOpInfo.op_type,
-              opName: graphOpInfo.op_name,
-            };
+          return originInfo.opName;
+        }
+      )
+    )
+  );
+
+  readonly executionIndex$ = this.store.pipe(
+    select(
+      createSelector(
+        getCodeLocationOrigin,
+        (originInfo): number | null => {
+          if (
+            originInfo === null ||
+            originInfo.codeLocationType !== CodeLocationType.EXECUTION
+          ) {
+            return null;
           }
+          return originInfo.executionIndex;
         }
       )
     )
