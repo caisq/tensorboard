@@ -26,6 +26,24 @@ limitations under the License.
   display: inline-block;
 }
 
+.graph-execution-focus-op {
+  display: inline-block;
+  font-weight: bold;
+  margin-left: 3px;
+}
+
+.graph-execution-focus-consumer {
+  display: inline-block;
+  font-weight: bold;
+  margin-left: 3px;
+}
+
+.graph-execution-focus-input {
+  display: inline-block;
+  font-weight: bold;
+  margin-left: 3px;
+}
+
 .graph-execution-index {
   color: #757575;
   display: inline-block;

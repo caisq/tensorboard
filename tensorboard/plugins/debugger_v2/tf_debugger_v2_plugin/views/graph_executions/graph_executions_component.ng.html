@@ -35,6 +35,25 @@ limitations under the License.
           <div *ngIf="i === focusIndex" class="graph-execution-focus">
             ▶
           </div>
+          <div
+            *ngIf="graphExecutionData[i] !== undefined &&
+                   graphExecutionData[i].graph_id === focusGraphId &&
+                   graphExecutionData[i].op_name === focusOpName"
+            class="graph-execution-focus-op"
+          >
+            Op
+          </div>
+          <!-- Use icon for this. -->
+          <!-- <div
+            *ngIf="graphExecutionData[i] !== undefined &&
+                   graphExecutionData[i].graph_id === focusGraphId &&
+                   (graphExecutionData[i].op_name + ':' graphExecutionData[i].output_slot in focusInputTensorNames)"
+            class="graph-execution-focus-op"
+          >
+            Op
+          </div> -->
+          <!-- Use icon for this. -->
+
           {{ i }}
         </div>
         <div *ngIf="graphExecutionData[i]; else dataLoading">

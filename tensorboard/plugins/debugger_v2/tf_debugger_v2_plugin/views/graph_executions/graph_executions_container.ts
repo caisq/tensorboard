@@ -17,11 +17,12 @@ import {createSelector, select, Store} from '@ngrx/store';
 
 import {graphExecutionScrollToIndex, graphOpFocused} from '../../actions';
 import {
+  getFocusedGraphOpInfo,
   getGraphExecutionData,
   getGraphExecutionFocusIndex,
   getNumGraphExecutions,
 } from '../../store';
-import {State} from '../../store/debugger_types';
+import {State, GraphOpInfo} from '../../store/debugger_types';
 
 /** @typehack */ import * as _typeHackRxjs from 'rxjs';
 
@@ -33,6 +34,9 @@ import {State} from '../../store/debugger_types';
       [graphExecutionData]="graphExecutionData$ | async"
       [graphExecutionIndices]="graphExecutionIndices$ | async"
       [focusIndex]="focusIndex$ | async"
+      [focusGraphId]="focusGraphId$ | async"
+      [focusOpName]="focusOpName$ | async"
+      [focusInputTensorNames]="null"
       (onScrolledIndexChange)="onScrolledIndexChange($event)"
       (onTensorNameClick)="onTensorNameClick($event)"
     ></graph-executions-component>
@@ -58,6 +62,35 @@ export class GraphExecutionsContainer {
   );
 
   readonly focusIndex$ = this.store.pipe(select(getGraphExecutionFocusIndex));
+
+  readonly focusGraphId$ = this.store.pipe(
+    select(
+      createSelector(
+        getFocusedGraphOpInfo,
+        (opInfo: GraphOpInfo | null): string | null => {
+          if (opInfo === null) {
+            return null;
+          }
+          console.log('focus opInfo:', opInfo); // DEBUG
+          return opInfo.graph_ids[opInfo.graph_ids.length - 1];
+        }
+      )
+    )
+  );
+
+  readonly focusOpName$ = this.store.pipe(
+    select(
+      createSelector(
+        getFocusedGraphOpInfo,
+        (opInfo: GraphOpInfo | null): string | null => {
+          if (opInfo === null) {
+            return null;
+          }
+          return opInfo.op_name;
+        }
+      )
+    )
+  );
 
   onScrolledIndexChange(scrolledIndex: number) {
     this.store.dispatch(graphExecutionScrollToIndex({index: scrolledIndex}));

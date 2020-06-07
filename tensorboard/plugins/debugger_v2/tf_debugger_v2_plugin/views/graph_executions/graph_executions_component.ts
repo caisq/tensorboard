@@ -47,6 +47,15 @@ export class GraphExecutionsComponent implements OnChanges {
   @Input()
   focusIndex!: number | null;
 
+  @Input()
+  focusGraphId!: string | null;
+
+  @Input()
+  focusOpName!: string | null;
+
+  @Input()
+  focusInputTensorNames!: string[] | null;
+
   @Output()
   onScrolledIndexChange = new EventEmitter<number>();
 
