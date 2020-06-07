@@ -62,6 +62,9 @@ import {PluginRegistryModule} from './plugin_registry_module';
         margin: 80px auto 0;
         max-width: 540px;
       }
+      .last-reload-time {
+        font-style: italic;
+      }
     `,
     'iframe { border: 0; height: 100%; width: 100%; }',
   ],
@@ -88,9 +91,6 @@ export class PluginsComponent implements OnChanges {
   @Input()
   lastUpdated?: number;
 
-  @Input()
-  reloadId!: number;
-
   readonly LoadingMechanismType = LoadingMechanismType;
 
   private readonly pluginInstances = new Map<string, HTMLElement>();
@@ -99,8 +99,7 @@ export class PluginsComponent implements OnChanges {
     if (change['activePlugin'] && this.activePlugin) {
       this.renderPlugin(this.activePlugin!);
     }
-
-    if (change['reloadId'] && !change['reloadId'].firstChange) {
+    if (change['lastUpdated']) {
       this.reload();
     }
   }
@@ -145,7 +144,6 @@ export class PluginsComponent implements OnChanges {
         pluginElement = document.createElement(
           customElementPlugin.element_name
         );
-        (pluginElement as any).reloadOnReady = false;
         this.pluginsContainer.nativeElement.appendChild(pluginElement);
         break;
       }

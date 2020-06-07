@@ -68,6 +68,7 @@ py_library(
     visibility = ["//tensorboard:internal"],
     deps = [
         ":auth",
+        ":dry_run_stubs",
         ":exporter",
         ":flags_parser",
         ":formatters",
@@ -91,6 +92,7 @@ py_library(
     srcs = ["uploader.py"],
     deps = [
         ":logdir_loader",
+        ":upload_tracker",
         ":util",
         "//tensorboard:expect_grpc_installed",
         "//tensorboard/backend:process_graph",
@@ -109,13 +111,23 @@ py_library(
     ],
 )
 
+py_library(
+    name = "upload_tracker",
+    srcs = ["upload_tracker.py"],
+    deps = [],
+)
+
 py_test(
     name = "uploader_test",
     srcs = ["uploader_test.py"],
     srcs_version = "PY3",
     deps = [
+        ":dry_run_stubs",
+        ":server_info",
         ":test_util",
+        ":upload_tracker",
         ":uploader",
+        ":uploader_subcommand",
         ":util",
         "//tensorboard:data_compat",
         "//tensorboard:dataclass_compat",
@@ -134,6 +146,37 @@ py_test(
         "//tensorboard/util:test_util",
         "@com_google_protobuf//:protobuf_python",
         "@org_pythonhosted_mock",
+    ],
+)
+
+py_test(
+    name = "upload_tracker_test",
+    srcs = ["upload_tracker_test.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":upload_tracker",
+        "//tensorboard:test",
+        "@org_pythonhosted_mock",
+    ],
+)
+
+py_library(
+    name = "dry_run_stubs",
+    srcs = ["dry_run_stubs.py"],
+    deps = [
+        "//tensorboard/uploader/proto:protos_all_py_pb2",
+        "//tensorboard/uploader/proto:protos_all_py_pb2_grpc",
+    ],
+)
+
+py_test(
+    name = "dry_run_stubs_test",
+    srcs = ["dry_run_stubs_test.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":dry_run_stubs",
+        "//tensorboard:test",
+        "//tensorboard/uploader/proto:protos_all_py_pb2",
     ],
 )
 

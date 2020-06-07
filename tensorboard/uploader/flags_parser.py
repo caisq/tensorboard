@@ -99,6 +99,29 @@ def define_flags(parser):
         help="Experiment description. Markdown format.  Max 600 characters.",
     )
     upload.add_argument(
+        "--verbose",
+        type=int,
+        default=1,
+        help="Verbosity of the upload during data uploading. Supported values: "
+        "0: no statistics printed during uploading. 1 (default): print data "
+        "statistics as data is uploaded.",
+    )
+    upload.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Perform a dry run of uploading. In a dry run, the data is read "
+        "from the logdir as pointed to by the --logdir flag and statistics are "
+        "displayed (if --verbose is not 0), but no data is actually uploaded "
+        "to the server.",
+    )
+    upload.add_argument(
+        "--one_shot",
+        action="store_true",
+        help="Upload only the existing data in the logdir and then exit "
+        "immediately, instead of continuing to listen for new data in the "
+        "logdir.",
+    )
+    upload.add_argument(
         "--plugins",
         type=lambda option: option.split(","),
         default=[],
